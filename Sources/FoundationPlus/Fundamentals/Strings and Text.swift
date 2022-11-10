@@ -6,7 +6,7 @@
 //
 
 
-@_exported import Foundation
+import Foundation
 
 public typealias String = Swift.String
 

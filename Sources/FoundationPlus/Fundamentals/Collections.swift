@@ -468,3 +468,9 @@ extension CountedSet: CustomStringConvertible {
         rawValue.allObjects.description
     }
 }
+
+extension PurgeableData: CustomStringConvertible {
+    public var description: String {
+        (rawValue as Data).description
+    }
+}
