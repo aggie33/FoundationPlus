@@ -1,9 +1,11 @@
 import Foundation
-
+/*
 /// A unit of measurement.
 public protocol UnitProtocol {
     /// The base unit.
     static var base: Self { get }
+    
+    var symbol: String { get }
 }
 
 /// A unit that can be measured in a linear dimension and converted between by a conversion factor.
@@ -117,1267 +119,2751 @@ public extension Measurement where Unit: DimensionProtocol {
         self.init(Double(value), unit)
     }
 }
+*/
 
-/// A measurement that measures length. Allows you to convert between various units of length, and offers convenient shorthand!
-/// ```swift
-/// let height: Length = .feet(5) + .inches(7)
-/// print(height.centimeters)
-/// ```
-///
-///
-///
-///
+public protocol Unit {
+    var symbol: String { get }
+    static var base: Self { get }
+}
 
-/// Measures the distance between two points in space.
-public struct Length: Measurement {
-    public enum Unit: Double, DimensionProtocol {
-        case megameters = 1e6
-        case kilometers = 1e3
-        case hectometers = 1e2
-        case decameters = 1e1
-        case meters = 1e0
-        case decimeters = 1e-1
-        case centimeters = 1e-2
-        case millimeters = 1e-3
-        case micrometers = 1e-6
-        case nanometers = 1e-9
-        case picometers = 1e-12
-        case inches = 0.0254
-        case feet = 0.3048
-        case yards = 0.9144
-        case miles = 1609.34
-        case scandinavianMiles = 10000
-        case lightyears = 9.461e15
-        case nauticalMiles = 1852
-        case fathoms = 1.8288
-        case furlongs = 201.168
-        case astronomicalUnits = 1.496e11
-        case parsecs = 3.086e16
-        
-        public static var base: Self { .meters }
-        
-        public var conversionFactor: Double { rawValue }
+public protocol Dimension<Converter>: Unit {
+    associatedtype Converter: UnitConverter
+    var converter: Converter { get }
+    
+    init(symbol: String, converter: Converter)
+}
+
+public protocol UnitConverter {
+    /// Converts `value` from the unit converter's unit to the base unit.
+    func convertToBase(_ value: Double) -> Double
+    
+    /// Converts `value` from the base unit to the unit converter's unit.
+    func convertFromBase(_ value: Double) -> Double
+}
+
+public struct UnitConverterLinear: UnitConverter, Hashable, Codable {
+    public var coefficient: Double
+    public var constant: Double
+    
+    public init(coefficient: Double, constant: Double = 0) {
+        self.coefficient = coefficient
+        self.constant = constant
     }
     
-    @_implements(Measurement, valueInBaseUnit)
-    public var meters: Double
-    
-    public func value(in unit: Unit) -> Double {
-        meters / unit.rawValue
+    public func convertToBase(_ value: Double) -> Double {
+        value * coefficient + constant
     }
     
-    public init(meters: Double) {
-        self.meters = meters
-    }
-    
-    public init(valueInBaseUnit: Double) {
-        self.meters = valueInBaseUnit
-    }
-    
-    public init(_ value: Double, _ unit: Unit) {
-        self.init(meters: value * unit.rawValue)
+    public func convertFromBase(_ value: Double) -> Double {
+        (value - constant) / coefficient
     }
 }
 
-extension Length {
-    public init<T: BinaryFloatingPoint>(_ value: T, _ unit: Unit) {
-        self.init(meters: Double(value) * unit.rawValue)
-    }
-    
-    public init<T: BinaryInteger>(_ value: T, _ unit: Unit) {
-        self.init(meters: Double(value) * unit.rawValue)
-    }
-    
-    public static func megameters<T: BinaryFloatingPoint>(_ megameters: T) -> Self {
-        Self(megameters, .megameters)
-    }
-    
-    public static func megameters<T: BinaryInteger>(_ megameters: T) -> Self {
-        Self(megameters, .megameters)
-    }
-    
-    public init<T: BinaryFloatingPoint>(megameters: T) {
-        self.init(megameters, .megameters)
-    }
-    
-    public init<T: BinaryInteger>(megameters: T) {
-        self.init(megameters, .megameters)
-    }
-    
-    public var megameters: Double {
-        get { value(in: .megameters) }
-    }
-    
-    public static func kilometers<T: BinaryFloatingPoint>(_ kilometers: T) -> Self {
-        Self(kilometers, .kilometers)
-    }
-    
-    public static func kilometers<T: BinaryInteger>(_ kilometers: T) -> Self {
-        Self(kilometers, .kilometers)
-    }
-    
-    public init<T: BinaryFloatingPoint>(kilometers: T) {
-        self.init(kilometers, .kilometers)
-    }
-    
-    public init<T: BinaryInteger>(kilometers: T) {
-        self.init(kilometers, .kilometers)
-    }
-    
-    public var kilometers: Double {
-        get { value(in: .kilometers) }
-    }
-    
-    public static func hectometers<T: BinaryFloatingPoint>(_ hectometers: T) -> Self {
-        Self(hectometers, .hectometers)
-    }
-    
-    public static func hectometers<T: BinaryInteger>(_ hectometers: T) -> Self {
-        Self(hectometers, .hectometers)
-    }
-    
-    public init<T: BinaryFloatingPoint>(hectometers: T) {
-        self.init(hectometers, .hectometers)
-    }
-    
-    public init<T: BinaryInteger>(hectometers: T) {
-        self.init(hectometers, .hectometers)
-    }
-    
-    public var hectometers: Double {
-        get { value(in: .hectometers) }
-    }
-    
-    public static func decameters<T: BinaryFloatingPoint>(_ decameters: T) -> Self {
-        Self(decameters, .decameters)
-    }
-    
-    public static func decameters<T: BinaryInteger>(_ decameters: T) -> Self {
-        Self(decameters, .decameters)
-    }
-    
-    public init<T: BinaryFloatingPoint>(decameters: T) {
-        self.init(decameters, .decameters)
-    }
-    
-    public init<T: BinaryInteger>(decameters: T) {
-        self.init(decameters, .decameters)
-    }
-    
-    public var decameters: Double {
-        get { value(in: .decameters) }
-    }
-    
-    public static func meters<T: BinaryFloatingPoint>(_ meters: T) -> Self {
-        Self(meters, .meters)
-    }
-    
-    public static func meters<T: BinaryInteger>(_ meters: T) -> Self {
-        Self(meters, .meters)
-    }
-    
-    public init<T: BinaryFloatingPoint>(meters: T) {
-        self.init(meters, .meters)
-    }
-    
-    public init<T: BinaryInteger>(meters: T) {
-        self.init(meters, .meters)
-    }
-    
-    public static func decimeters<T: BinaryFloatingPoint>(_ decimeters: T) -> Self {
-        Self(decimeters, .decimeters)
-    }
-    
-    public static func decimeters<T: BinaryInteger>(_ decimeters: T) -> Self {
-        Self(decimeters, .decimeters)
-    }
-    
-    public init<T: BinaryFloatingPoint>(decimeters: T) {
-        self.init(decimeters, .decimeters)
-    }
-    
-    public init<T: BinaryInteger>(decimeters: T) {
-        self.init(decimeters, .decimeters)
-    }
-    
-    public var decimeters: Double {
-        get { value(in: .decimeters) }
-    }
-    
-    public static func centimeters<T: BinaryFloatingPoint>(_ centimeters: T) -> Self {
-        Self(centimeters, .centimeters)
-    }
-    
-    public static func centimeters<T: BinaryInteger>(_ centimeters: T) -> Self {
-        Self(centimeters, .centimeters)
-    }
-    
-    public init<T: BinaryFloatingPoint>(centimeters: T) {
-        self.init(centimeters, .centimeters)
-    }
-    
-    public init<T: BinaryInteger>(centimeters: T) {
-        self.init(centimeters, .centimeters)
-    }
-    
-    public var centimeters: Double {
-        get { value(in: .centimeters) }
-    }
-    
-    public static func millimeters<T: BinaryFloatingPoint>(_ millimeters: T) -> Self {
-        Self(millimeters, .millimeters)
-    }
-    
-    public static func millimeters<T: BinaryInteger>(_ millimeters: T) -> Self {
-        Self(millimeters, .millimeters)
-    }
-    
-    public init<T: BinaryFloatingPoint>(millimeters: T) {
-        self.init(millimeters, .millimeters)
-    }
-    
-    public init<T: BinaryInteger>(millimeters: T) {
-        self.init(millimeters, .millimeters)
-    }
-    
-    public var millimeters: Double {
-        get { value(in: .millimeters) }
-    }
-    
-    public static func micrometers<T: BinaryFloatingPoint>(_ micrometers: T) -> Self {
-        Self(micrometers, .micrometers)
-    }
-    
-    public static func micrometers<T: BinaryInteger>(_ micrometers: T) -> Self {
-        Self(micrometers, .micrometers)
-    }
-    
-    public init<T: BinaryFloatingPoint>(micrometers: T) {
-        self.init(micrometers, .micrometers)
-    }
-    
-    public init<T: BinaryInteger>(micrometers: T) {
-        self.init(micrometers, .micrometers)
-    }
-    
-    public var micrometers: Double {
-        get { value(in: .micrometers) }
-    }
-    
-    public static func nanometers<T: BinaryFloatingPoint>(_ nanometers: T) -> Self {
-        Self(nanometers, .nanometers)
-    }
-    
-    public static func nanometers<T: BinaryInteger>(_ nanometers: T) -> Self {
-        Self(nanometers, .nanometers)
-    }
-    
-    public init<T: BinaryFloatingPoint>(nanometers: T) {
-        self.init(nanometers, .nanometers)
-    }
-    
-    public init<T: BinaryInteger>(nanometers: T) {
-        self.init(nanometers, .nanometers)
-    }
-    
-    public var nanometers: Double {
-        get { value(in: .nanometers) }
-    }
-    
-    public static func picometers<T: BinaryFloatingPoint>(_ picometers: T) -> Self {
-        Self(picometers, .picometers)
-    }
-    
-    public static func picometers<T: BinaryInteger>(_ picometers: T) -> Self {
-        Self(picometers, .picometers)
-    }
-    
-    public init<T: BinaryFloatingPoint>(picometers: T) {
-        self.init(picometers, .picometers)
-    }
-    
-    public init<T: BinaryInteger>(picometers: T) {
-        self.init(picometers, .picometers)
-    }
-    
-    public var picometers: Double {
-        get { value(in: .picometers) }
-    }
-    
-    public static func inches<T: BinaryFloatingPoint>(_ inches: T) -> Self {
-        Self(inches, .inches)
-    }
-    
-    public static func inches<T: BinaryInteger>(_ inches: T) -> Self {
-        Self(inches, .inches)
-    }
-    
-    public init<T: BinaryFloatingPoint>(inches: T) {
-        self.init(inches, .inches)
-    }
-    
-    public init<T: BinaryInteger>(inches: T) {
-        self.init(inches, .inches)
-    }
-    
-    public var inches: Double {
-        get { value(in: .inches) }
-    }
-    
-    public static func feet<T: BinaryFloatingPoint>(_ feet: T) -> Self {
-        Self(feet, .feet)
-    }
-    
-    public static func feet<T: BinaryInteger>(_ feet: T) -> Self {
-        Self(feet, .feet)
-    }
-    
-    public init<T: BinaryFloatingPoint>(feet: T) {
-        self.init(feet, .feet)
-    }
-    
-    public init<T: BinaryInteger>(feet: T) {
-        self.init(feet, .feet)
-    }
-    
-    public var feet: Double {
-        get { value(in: .feet) }
-    }
-    
-    public static func yards<T: BinaryFloatingPoint>(_ yards: T) -> Self {
-        Self(yards, .yards)
-    }
-    
-    public static func yards<T: BinaryInteger>(_ yards: T) -> Self {
-        Self(yards, .yards)
-    }
-    
-    public init<T: BinaryFloatingPoint>(yards: T) {
-        self.init(yards, .yards)
-    }
-    
-    public init<T: BinaryInteger>(yards: T) {
-        self.init(yards, .yards)
-    }
-    
-    public var yards: Double {
-        get { value(in: .yards) }
-    }
-    
-    public static func miles<T: BinaryFloatingPoint>(_ miles: T) -> Self {
-        Self(miles, .miles)
-    }
-    
-    public static func miles<T: BinaryInteger>(_ miles: T) -> Self {
-        Self(miles, .miles)
-    }
-    
-    public init<T: BinaryFloatingPoint>(miles: T) {
-        self.init(miles, .miles)
-    }
-    
-    public init<T: BinaryInteger>(miles: T) {
-        self.init(miles, .miles)
-    }
-    
-    public var miles: Double {
-        get { value(in: .miles) }
-    }
-    
-    public static func scandinavianMiles<T: BinaryFloatingPoint>(_ scandinavianMiles: T) -> Self {
-        Self(scandinavianMiles, .scandinavianMiles)
-    }
-    
-    public static func scandinavianMiles<T: BinaryInteger>(_ scandinavianMiles: T) -> Self {
-        Self(scandinavianMiles, .scandinavianMiles)
-    }
-    
-    public init<T: BinaryFloatingPoint>(scandinavianMiles: T) {
-        self.init(scandinavianMiles, .scandinavianMiles)
-    }
-    
-    public init<T: BinaryInteger>(scandinavianMiles: T) {
-        self.init(scandinavianMiles, .scandinavianMiles)
-    }
-    
-    public var scandinavianMiles: Double {
-        get { value(in: .scandinavianMiles) }
-    }
-    
-    public static func lightyears<T: BinaryFloatingPoint>(_ lightyears: T) -> Self {
-        Self(lightyears, .lightyears)
-    }
-    
-    public static func lightyears<T: BinaryInteger>(_ lightyears: T) -> Self {
-        Self(lightyears, .lightyears)
-    }
-    
-    public init<T: BinaryFloatingPoint>(lightyears: T) {
-        self.init(lightyears, .lightyears)
-    }
-    
-    public init<T: BinaryInteger>(lightyears: T) {
-        self.init(lightyears, .lightyears)
-    }
-    
-    public var lightyears: Double {
-        get { value(in: .lightyears) }
-    }
-    
-    public static func nauticalMiles<T: BinaryFloatingPoint>(_ nauticalMiles: T) -> Self {
-        Self(nauticalMiles, .nauticalMiles)
-    }
-    
-    public static func nauticalMiles<T: BinaryInteger>(_ nauticalMiles: T) -> Self {
-        Self(nauticalMiles, .nauticalMiles)
-    }
-    
-    public init<T: BinaryFloatingPoint>(nauticalMiles: T) {
-        self.init(nauticalMiles, .nauticalMiles)
-    }
-    
-    public init<T: BinaryInteger>(nauticalMiles: T) {
-        self.init(nauticalMiles, .nauticalMiles)
-    }
-    
-    public var nauticalMiles: Double {
-        get { value(in: .nauticalMiles) }
-    }
-    
-    public static func fathoms<T: BinaryFloatingPoint>(_ fathoms: T) -> Self {
-        Self(fathoms, .fathoms)
-    }
-    
-    public static func fathoms<T: BinaryInteger>(_ fathoms: T) -> Self {
-        Self(fathoms, .fathoms)
-    }
-    
-    public init<T: BinaryFloatingPoint>(fathoms: T) {
-        self.init(fathoms, .fathoms)
-    }
-    
-    public init<T: BinaryInteger>(fathoms: T) {
-        self.init(fathoms, .fathoms)
-    }
-    
-    public var fathoms: Double {
-        get { value(in: .fathoms) }
-    }
-    
-    public static func furlongs<T: BinaryFloatingPoint>(_ furlongs: T) -> Self {
-        Self(furlongs, .furlongs)
-    }
-    
-    public static func furlongs<T: BinaryInteger>(_ furlongs: T) -> Self {
-        Self(furlongs, .furlongs)
-    }
-    
-    public init<T: BinaryFloatingPoint>(furlongs: T) {
-        self.init(furlongs, .furlongs)
-    }
-    
-    public init<T: BinaryInteger>(furlongs: T) {
-        self.init(furlongs, .furlongs)
-    }
-    
-    public var furlongs: Double {
-        get { value(in: .furlongs) }
-    }
-    
-    public static func astronomicalUnits<T: BinaryFloatingPoint>(_ astronomicalUnits: T) -> Self {
-        Self(astronomicalUnits, .astronomicalUnits)
-    }
-    
-    public static func astronomicalUnits<T: BinaryInteger>(_ astronomicalUnits: T) -> Self {
-        Self(astronomicalUnits, .astronomicalUnits)
-    }
-    
-    public init<T: BinaryFloatingPoint>(astronomicalUnits: T) {
-        self.init(astronomicalUnits, .astronomicalUnits)
-    }
-    
-    public init<T: BinaryInteger>(astronomicalUnits: T) {
-        self.init(astronomicalUnits, .astronomicalUnits)
-    }
-    
-    public var astronomicalUnits: Double {
-        get { value(in: .astronomicalUnits) }
-    }
-    
-    public static func parsecs<T: BinaryFloatingPoint>(_ parsecs: T) -> Self {
-        Self(parsecs, .parsecs)
-    }
-    
-    public static func parsecs<T: BinaryInteger>(_ parsecs: T) -> Self {
-        Self(parsecs, .parsecs)
-    }
-    
-    public init<T: BinaryFloatingPoint>(parsecs: T) {
-        self.init(parsecs, .parsecs)
-    }
+/// Finds the reciprocal. Set the `reciprocal` value to 0 to just return the value inputted.
+public struct UnitConverterReciprocal: UnitConverter, Hashable, Codable {
+    var reciprocal: Double
     
-    public init<T: BinaryInteger>(parsecs: T) {
-        self.init(parsecs, .parsecs)
+    public func convertToBase(_ value: Double) -> Double {
+        reciprocal == 0 ? value : reciprocal / value
     }
     
-    public var parsecs: Double {
-        get { value(in: .parsecs) }
+    public func convertFromBase(_ value: Double) -> Double {
+        reciprocal == 0 ? value : reciprocal / value
     }
 }
 
-/// Measures an area.
-public struct Area: Measurement {
-    public func value(in unit: Unit) -> Double {
-        squareMeters / unit.conversionFactor
-    }
-    
-    public enum Unit: DimensionProtocol {
-        public static var base: Self { .squareMeters }
-        
-        case square(Length.Unit)
-        case acres
-        case ares
-        case hectares
-        
-        public static var squareMegameters: Self { .square(.megameters) }
-        public static var squareKilometers: Self { .square(.kilometers) }
-        public static var squareMeters: Self { .square(.meters) }
-        public static var squareCentimeters: Self { .square(.centimeters) }
-        public static var squareMillimeters: Self { .square(.millimeters) }
-        public static var squareMicrometers: Self { .square(.micrometers) }
-        public static var squareNanometers: Self { .square(.nanometers) }
-        public static var squareInches: Self { .square(.inches) }
-        public static var squareFeet: Self { .square(.feet) }
-        public static var squareYards: Self { .square(.yards) }
-        public static var squareMiles: Self { .square(.miles) }
-        
-        public var conversionFactor: Double {
-            switch self {
-            case .acres:
-                return 4046.86
-            case .ares:
-                return 100
-            case .hectares:
-                return 10000
-            case .square(let unit):
-                return unit.conversionFactor * unit.conversionFactor
-            }
-        }
-    }
-    
-    @_implements(Measurement, valueInBaseUnit)
-    public var squareMeters: Double
-    
-    public init(squareMeters: Double) {
-        self.squareMeters = squareMeters
-    }
-    
-    public init(valueInBaseUnit: Double) {
-        self.init(squareMeters: valueInBaseUnit)
+public struct Measurement<UnitType: Unit> {
+    public private(set) var unit: UnitType
+    public var value: Double
+}
+
+extension Measurement where UnitType: Dimension {
+    public func value(in unit: UnitType) -> Double {
+        UnitType.convert(value, from: self.unit, to: unit)
     }
 }
 
+extension Measurement {
+    public init(_ value: Double, _ unit: UnitType) {
+        self.init(unit: unit, value: value)
+    }
+    
+    public init(value: Double, unit: UnitType) {
+        self.init(unit: unit, value: value)
+    }
+}
+
+extension Measurement: Equatable where UnitType: Dimension {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.converted(to: .base).value == rhs.converted(to: .base).value
+    }
+}
+extension Measurement: Hashable where UnitType: Dimension {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(value(in: .base))
+    }
+}
+extension Measurement: Codable where UnitType: Codable {}
+
+public extension Measurement where UnitType: Dimension {
+    mutating func convert(to unitType: UnitType) {
+        self = Measurement(
+            unit: unitType,
+            value: unitType.converter.convertFromBase (
+                unit.converter.convertToBase(value)
+            )
+        )
+    }
+    
+    func converted(to unitType: UnitType) -> Measurement<UnitType> {
+        Measurement(
+            unit: unitType,
+            value: unitType.converter.convertFromBase (
+                unit.converter.convertToBase(value)
+            )
+        )
+    }
+}
+
+public extension Measurement {
+    static func * (lhs: Self, rhs: Double) -> Self {
+        Self(unit: lhs.unit, value: lhs.value * rhs)
+    }
+    
+    static func / (lhs: Self, rhs: Double) -> Self {
+        Self(unit: lhs.unit, value: lhs.value / rhs)
+    }
+    
+    static func + (lhs: Self, rhs: Self) -> Self {
+        Self(unit: lhs.unit, value: lhs.value + rhs.value)
+    }
+}
+
+extension Measurement: CustomStringConvertible {
+    public var description: String {
+        "\(value) \(unit.symbol)"
+    }
+}
+
+public extension Dimension {
+    static func convert(_ value: Double, from startUnit: Self, to endUnit: Self) -> Double {
+        endUnit.converter.convertFromBase(startUnit.converter.convertToBase(value))
+    }
+}
+public struct Area: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .squareMeters }
+}
 extension Area {
-    
-    public static func squareMegameters<T: BinaryFloatingPoint>(_ squareMegameters: T) -> Self {
-        Self(squareMegameters, .squareMegameters)
+    public static var squareMeters: Self {
+        Self(symbol: "m²", converter: UnitConverterLinear(coefficient: 1))
     }
 
-    public static func squareMegameters<T: BinaryInteger>(_ squareMegameters: T) -> Self {
-        Self(squareMegameters, .squareMegameters)
+    public static var squareMegameters: Self {
+        Self(symbol: "Mm²", converter: UnitConverterLinear(coefficient: 1e12))
+    }
+    public static var squareKilometers: Self {
+        Self(symbol: "km²", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var squareCentimeters: Self {
+        Self(symbol: "cm²", converter: UnitConverterLinear(coefficient: 0.0001))
+    }
+    public static var squareMillimeters: Self {
+        Self(symbol: "mm²", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+    public static var squareMicrometers: Self {
+        Self(symbol: "µm²", converter: UnitConverterLinear(coefficient: 1e-12))
+    }
+    public static var squareNanometers: Self {
+        Self(symbol: "nm²", converter: UnitConverterLinear(coefficient: 1e-18))
+    }
+    public static var squareInches: Self {
+        Self(symbol: "in²", converter: UnitConverterLinear(coefficient: 0.00064516))
+    }
+    public static var squareFeet: Self {
+        Self(symbol: "ft²", converter: UnitConverterLinear(coefficient: 0.092903))
+    }
+    public static var squareYards: Self {
+        Self(symbol: "yd²", converter: UnitConverterLinear(coefficient: 0.836127))
+    }
+    public static var squareMiles: Self {
+        Self(symbol: "mi²", converter: UnitConverterLinear(coefficient: 2.59e+6))
+    }
+    public static var acres: Self {
+        Self(symbol: "ac", converter: UnitConverterLinear(coefficient: 4046.86))
+    }
+    public static var ares: Self {
+        Self(symbol: "a", converter: UnitConverterLinear(coefficient: 100))
+    }
+    public static var hectares: Self {
+        Self(symbol: "ha", converter: UnitConverterLinear(coefficient: 10000))
+    }
+}
+extension Measurement where UnitType == Area {
+    public var squareMeters: Double {
+    value(in: .squareMeters)
+}
+    public static func squareMeters(_ value: Double) -> Self {
+        Self(value, .squareMeters)
     }
 
-    public init<T: BinaryFloatingPoint>(squareMegameters: T) {
-        self.init(squareMegameters, .squareMegameters)
-    }
-
-    public init<T: BinaryInteger>(squareMegameters: T) {
-        self.init(squareMegameters, .squareMegameters)
+    public static func squareMegameters(_ value: Double) -> Self {
+        Self(value, .squareMegameters)
     }
 
     public var squareMegameters: Double {
-        get { value(in: .squareMegameters) }
+        UnitType.convert(value, from: unit, to: .squareMegameters)
     }
 
-    public static func squareKilometers<T: BinaryFloatingPoint>(_ squareKilometers: T) -> Self {
-        Self(squareKilometers, .squareKilometers)
-    }
-
-    public static func squareKilometers<T: BinaryInteger>(_ squareKilometers: T) -> Self {
-        Self(squareKilometers, .squareKilometers)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareKilometers: T) {
-        self.init(squareKilometers, .squareKilometers)
-    }
-
-    public init<T: BinaryInteger>(squareKilometers: T) {
-        self.init(squareKilometers, .squareKilometers)
+    public static func squareKilometers(_ value: Double) -> Self {
+        Self(value, .squareKilometers)
     }
 
     public var squareKilometers: Double {
-        get { value(in: .squareKilometers) }
+        UnitType.convert(value, from: unit, to: .squareKilometers)
     }
 
-    public static func squareMeters<T: BinaryFloatingPoint>(_ squareMeters: T) -> Self {
-        Self(squareMeters, .squareMeters)
-    }
-
-    public static func squareMeters<T: BinaryInteger>(_ squareMeters: T) -> Self {
-        Self(squareMeters, .squareMeters)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareMeters: T) {
-        self.init(squareMeters, .squareMeters)
-    }
-
-    public init<T: BinaryInteger>(squareMeters: T) {
-        self.init(squareMeters, .squareMeters)
-    }
-
-    public static func squareCentimeters<T: BinaryFloatingPoint>(_ squareCentimeters: T) -> Self {
-        Self(squareCentimeters, .squareCentimeters)
-    }
-
-    public static func squareCentimeters<T: BinaryInteger>(_ squareCentimeters: T) -> Self {
-        Self(squareCentimeters, .squareCentimeters)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareCentimeters: T) {
-        self.init(squareCentimeters, .squareCentimeters)
-    }
-
-    public init<T: BinaryInteger>(squareCentimeters: T) {
-        self.init(squareCentimeters, .squareCentimeters)
+    public static func squareCentimeters(_ value: Double) -> Self {
+        Self(value, .squareCentimeters)
     }
 
     public var squareCentimeters: Double {
-        get { value(in: .squareCentimeters) }
+        UnitType.convert(value, from: unit, to: .squareCentimeters)
     }
 
-    public static func squareMillimeters<T: BinaryFloatingPoint>(_ squareMillimeters: T) -> Self {
-        Self(squareMillimeters, .squareMillimeters)
-    }
-
-    public static func squareMillimeters<T: BinaryInteger>(_ squareMillimeters: T) -> Self {
-        Self(squareMillimeters, .squareMillimeters)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareMillimeters: T) {
-        self.init(squareMillimeters, .squareMillimeters)
-    }
-
-    public init<T: BinaryInteger>(squareMillimeters: T) {
-        self.init(squareMillimeters, .squareMillimeters)
+    public static func squareMillimeters(_ value: Double) -> Self {
+        Self(value, .squareMillimeters)
     }
 
     public var squareMillimeters: Double {
-        get { value(in: .squareMillimeters) }
+        UnitType.convert(value, from: unit, to: .squareMillimeters)
     }
 
-    public static func squareMicrometers<T: BinaryFloatingPoint>(_ squareMicrometers: T) -> Self {
-        Self(squareMicrometers, .squareMicrometers)
-    }
-
-    public static func squareMicrometers<T: BinaryInteger>(_ squareMicrometers: T) -> Self {
-        Self(squareMicrometers, .squareMicrometers)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareMicrometers: T) {
-        self.init(squareMicrometers, .squareMicrometers)
-    }
-
-    public init<T: BinaryInteger>(squareMicrometers: T) {
-        self.init(squareMicrometers, .squareMicrometers)
+    public static func squareMicrometers(_ value: Double) -> Self {
+        Self(value, .squareMicrometers)
     }
 
     public var squareMicrometers: Double {
-        get { value(in: .squareMicrometers) }
+        UnitType.convert(value, from: unit, to: .squareMicrometers)
     }
 
-    public static func squareNanometers<T: BinaryFloatingPoint>(_ squareNanometers: T) -> Self {
-        Self(squareNanometers, .squareNanometers)
-    }
-
-    public static func squareNanometers<T: BinaryInteger>(_ squareNanometers: T) -> Self {
-        Self(squareNanometers, .squareNanometers)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareNanometers: T) {
-        self.init(squareNanometers, .squareNanometers)
-    }
-
-    public init<T: BinaryInteger>(squareNanometers: T) {
-        self.init(squareNanometers, .squareNanometers)
+    public static func squareNanometers(_ value: Double) -> Self {
+        Self(value, .squareNanometers)
     }
 
     public var squareNanometers: Double {
-        get { value(in: .squareNanometers) }
+        UnitType.convert(value, from: unit, to: .squareNanometers)
     }
 
-    public static func squareInches<T: BinaryFloatingPoint>(_ squareInches: T) -> Self {
-        Self(squareInches, .squareInches)
-    }
-
-    public static func squareInches<T: BinaryInteger>(_ squareInches: T) -> Self {
-        Self(squareInches, .squareInches)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareInches: T) {
-        self.init(squareInches, .squareInches)
-    }
-
-    public init<T: BinaryInteger>(squareInches: T) {
-        self.init(squareInches, .squareInches)
+    public static func squareInches(_ value: Double) -> Self {
+        Self(value, .squareInches)
     }
 
     public var squareInches: Double {
-        get { value(in: .squareInches) }
+        UnitType.convert(value, from: unit, to: .squareInches)
     }
 
-    public static func squareFeet<T: BinaryFloatingPoint>(_ squareFeet: T) -> Self {
-        Self(squareFeet, .squareFeet)
-    }
-
-    public static func squareFeet<T: BinaryInteger>(_ squareFeet: T) -> Self {
-        Self(squareFeet, .squareFeet)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareFeet: T) {
-        self.init(squareFeet, .squareFeet)
-    }
-
-    public init<T: BinaryInteger>(squareFeet: T) {
-        self.init(squareFeet, .squareFeet)
+    public static func squareFeet(_ value: Double) -> Self {
+        Self(value, .squareFeet)
     }
 
     public var squareFeet: Double {
-        get { value(in: .squareFeet) }
+        UnitType.convert(value, from: unit, to: .squareFeet)
     }
 
-    public static func squareYards<T: BinaryFloatingPoint>(_ squareYards: T) -> Self {
-        Self(squareYards, .squareYards)
-    }
-
-    public static func squareYards<T: BinaryInteger>(_ squareYards: T) -> Self {
-        Self(squareYards, .squareYards)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareYards: T) {
-        self.init(squareYards, .squareYards)
-    }
-
-    public init<T: BinaryInteger>(squareYards: T) {
-        self.init(squareYards, .squareYards)
+    public static func squareYards(_ value: Double) -> Self {
+        Self(value, .squareYards)
     }
 
     public var squareYards: Double {
-        get { value(in: .squareYards) }
+        UnitType.convert(value, from: unit, to: .squareYards)
     }
 
-    public static func squareMiles<T: BinaryFloatingPoint>(_ squareMiles: T) -> Self {
-        Self(squareMiles, .squareMiles)
-    }
-
-    public static func squareMiles<T: BinaryInteger>(_ squareMiles: T) -> Self {
-        Self(squareMiles, .squareMiles)
-    }
-
-    public init<T: BinaryFloatingPoint>(squareMiles: T) {
-        self.init(squareMiles, .squareMiles)
-    }
-
-    public init<T: BinaryInteger>(squareMiles: T) {
-        self.init(squareMiles, .squareMiles)
+    public static func squareMiles(_ value: Double) -> Self {
+        Self(value, .squareMiles)
     }
 
     public var squareMiles: Double {
-        get { value(in: .squareMiles) }
+        UnitType.convert(value, from: unit, to: .squareMiles)
     }
 
-    public static func acres<T: BinaryFloatingPoint>(_ acres: T) -> Self {
-        Self(acres, .acres)
-    }
-
-    public static func acres<T: BinaryInteger>(_ acres: T) -> Self {
-        Self(acres, .acres)
-    }
-
-    public init<T: BinaryFloatingPoint>(acres: T) {
-        self.init(acres, .acres)
-    }
-
-    public init<T: BinaryInteger>(acres: T) {
-        self.init(acres, .acres)
+    public static func acres(_ value: Double) -> Self {
+        Self(value, .acres)
     }
 
     public var acres: Double {
-        get { value(in: .acres) }
+        UnitType.convert(value, from: unit, to: .acres)
     }
 
-    public static func ares<T: BinaryFloatingPoint>(_ ares: T) -> Self {
-        Self(ares, .ares)
-    }
-
-    public static func ares<T: BinaryInteger>(_ ares: T) -> Self {
-        Self(ares, .ares)
-    }
-
-    public init<T: BinaryFloatingPoint>(ares: T) {
-        self.init(ares, .ares)
-    }
-
-    public init<T: BinaryInteger>(ares: T) {
-        self.init(ares, .ares)
+    public static func ares(_ value: Double) -> Self {
+        Self(value, .ares)
     }
 
     public var ares: Double {
-        get { value(in: .ares) }
+        UnitType.convert(value, from: unit, to: .ares)
     }
 
-    public static func hectares<T: BinaryFloatingPoint>(_ hectares: T) -> Self {
-        Self(hectares, .hectares)
-    }
-
-    public static func hectares<T: BinaryInteger>(_ hectares: T) -> Self {
-        Self(hectares, .hectares)
-    }
-
-    public init<T: BinaryFloatingPoint>(hectares: T) {
-        self.init(hectares, .hectares)
-    }
-
-    public init<T: BinaryInteger>(hectares: T) {
-        self.init(hectares, .hectares)
+    public static func hectares(_ value: Double) -> Self {
+        Self(value, .hectares)
     }
 
     public var hectares: Double {
-        get { value(in: .hectares) }
-    }
-}
-
-/// Measures an angle.
-public struct Angle: Measurement {
-    public enum Unit: Double, DimensionProtocol {
-        case degrees = 1
-        case arcMinutes = 0.016667
-        case arcSeconds = 0.00027778888
-        case radians = 57.2958
-        case gradians = 0.9
-        case revolutions = 360
-        
-        public var conversionFactor: Double { rawValue }
-        public static var base: Self { .degrees }
-    }
-    
-    @_implements(Measurement, valueInBaseUnit)
-    public var degrees: Double
-    
-    public init(valueInBaseUnit: Double) {
-        self.degrees = valueInBaseUnit
-    }
-}
-
-extension Angle {
-    public static func degrees<T: BinaryFloatingPoint>(_ degrees: T) -> Self {
-        Self(degrees, .degrees)
-    }
-
-    public static func degrees<T: BinaryInteger>(_ degrees: T) -> Self {
-        Self(degrees, .degrees)
-    }
-
-    public init<T: BinaryFloatingPoint>(degrees: T) {
-        self.init(degrees, .degrees)
-    }
-
-    public init<T: BinaryInteger>(degrees: T) {
-        self.init(degrees, .degrees)
-    }
-
-    public static func arcMinutes<T: BinaryFloatingPoint>(_ arcMinutes: T) -> Self {
-        Self(arcMinutes, .arcMinutes)
-    }
-
-    public static func arcMinutes<T: BinaryInteger>(_ arcMinutes: T) -> Self {
-        Self(arcMinutes, .arcMinutes)
-    }
-
-    public init<T: BinaryFloatingPoint>(arcMinutes: T) {
-        self.init(arcMinutes, .arcMinutes)
-    }
-
-    public init<T: BinaryInteger>(arcMinutes: T) {
-        self.init(arcMinutes, .arcMinutes)
-    }
-
-    public var arcMinutes: Double {
-        get { value(in: .arcMinutes) }
-    }
-
-    public static func arcSeconds<T: BinaryFloatingPoint>(_ arcSeconds: T) -> Self {
-        Self(arcSeconds, .arcSeconds)
-    }
-
-    public static func arcSeconds<T: BinaryInteger>(_ arcSeconds: T) -> Self {
-        Self(arcSeconds, .arcSeconds)
-    }
-
-    public init<T: BinaryFloatingPoint>(arcSeconds: T) {
-        self.init(arcSeconds, .arcSeconds)
-    }
-
-    public init<T: BinaryInteger>(arcSeconds: T) {
-        self.init(arcSeconds, .arcSeconds)
-    }
-
-    public var arcSeconds: Double {
-        get { value(in: .arcSeconds) }
-    }
-
-    public static func radians<T: BinaryFloatingPoint>(_ radians: T) -> Self {
-        Self(radians, .radians)
-    }
-
-    public static func radians<T: BinaryInteger>(_ radians: T) -> Self {
-        Self(radians, .radians)
-    }
-
-    public init<T: BinaryFloatingPoint>(radians: T) {
-        self.init(radians, .radians)
-    }
-
-    public init<T: BinaryInteger>(radians: T) {
-        self.init(radians, .radians)
-    }
-
-    public var radians: Double {
-        get { value(in: .radians) }
-    }
-
-    public static func gradians<T: BinaryFloatingPoint>(_ gradians: T) -> Self {
-        Self(gradians, .gradians)
-    }
-
-    public static func gradians<T: BinaryInteger>(_ gradians: T) -> Self {
-        Self(gradians, .gradians)
-    }
-
-    public init<T: BinaryFloatingPoint>(gradians: T) {
-        self.init(gradians, .gradians)
-    }
-
-    public init<T: BinaryInteger>(gradians: T) {
-        self.init(gradians, .gradians)
-    }
-
-    public var gradians: Double {
-        get { value(in: .gradians) }
-    }
-
-    public static func revolutions<T: BinaryFloatingPoint>(_ revolutions: T) -> Self {
-        Self(revolutions, .revolutions)
-    }
-
-    public static func revolutions<T: BinaryInteger>(_ revolutions: T) -> Self {
-        Self(revolutions, .revolutions)
-    }
-
-    public init<T: BinaryFloatingPoint>(revolutions: T) {
-        self.init(revolutions, .revolutions)
-    }
-
-    public init<T: BinaryInteger>(revolutions: T) {
-        self.init(revolutions, .revolutions)
-    }
-
-    public var revolutions: Double {
-        get { value(in: .revolutions) }
-    }
-}
-
-/// Measures a difference in potential energy.
-public struct ElectricPotentialDifference: Measurement {
-    public init(volts: Double) {
-        self.volts = volts
-    }
-    
-    public init(valueInBaseUnit: Double) {
-        self.valueInBaseUnit = valueInBaseUnit
-    }
-    
-    public enum Unit: Double, DimensionProtocol {
-        case megavolts = 1000000.0
-        case kilovolts = 1000.0
-        case volts = 1.0
-        case millivolts = 0.001
-        case microvolts = 0.000001
-        
-        public var conversionFactor: Double { rawValue }
-        public static var base: Self { .volts }
-    }
-    
-    @_implements(Measurement, valueInBaseUnit)
-    public var volts: Double
-}
-
-extension ElectricPotentialDifference {
-    public static func megavolts<T: BinaryFloatingPoint>(_ megavolts: T) -> Self {
-        Self(megavolts, .megavolts)
-    }
-
-    public static func megavolts<T: BinaryInteger>(_ megavolts: T) -> Self {
-        Self(megavolts, .megavolts)
-    }
-
-    public init<T: BinaryFloatingPoint>(megavolts: T) {
-        self.init(megavolts, .megavolts)
-    }
-
-    public init<T: BinaryInteger>(megavolts: T) {
-        self.init(megavolts, .megavolts)
-    }
-
-    public var megavolts: Double {
-        get { value(in: .megavolts) }
-    }
-
-    public static func kilovolts<T: BinaryFloatingPoint>(_ kilovolts: T) -> Self {
-        Self(kilovolts, .kilovolts)
-    }
-
-    public static func kilovolts<T: BinaryInteger>(_ kilovolts: T) -> Self {
-        Self(kilovolts, .kilovolts)
-    }
-
-    public init<T: BinaryFloatingPoint>(kilovolts: T) {
-        self.init(kilovolts, .kilovolts)
-    }
-
-    public init<T: BinaryInteger>(kilovolts: T) {
-        self.init(kilovolts, .kilovolts)
-    }
-
-    public var kilovolts: Double {
-        get { value(in: .kilovolts) }
-    }
-
-    public static func volts<T: BinaryFloatingPoint>(_ volts: T) -> Self {
-        Self(volts, .volts)
-    }
-
-    public static func volts<T: BinaryInteger>(_ volts: T) -> Self {
-        Self(volts, .volts)
-    }
-
-    public init<T: BinaryFloatingPoint>(volts: T) {
-        self.init(volts, .volts)
-    }
-
-    public init<T: BinaryInteger>(volts: T) {
-        self.init(volts, .volts)
-    }
-    
-    public static func millivolts<T: BinaryFloatingPoint>(_ millivolts: T) -> Self {
-        Self(millivolts, .millivolts)
-    }
-
-    public static func millivolts<T: BinaryInteger>(_ millivolts: T) -> Self {
-        Self(millivolts, .millivolts)
-    }
-
-    public init<T: BinaryFloatingPoint>(millivolts: T) {
-        self.init(millivolts, .millivolts)
-    }
-
-    public init<T: BinaryInteger>(millivolts: T) {
-        self.init(millivolts, .millivolts)
-    }
-
-    public var millivolts: Double {
-        get { value(in: .millivolts) }
-    }
-
-    public static func microvolts<T: BinaryFloatingPoint>(_ microvolts: T) -> Self {
-        Self(microvolts, .microvolts)
-    }
-
-    public static func microvolts<T: BinaryInteger>(_ microvolts: T) -> Self {
-        Self(microvolts, .microvolts)
-    }
-
-    public init<T: BinaryFloatingPoint>(microvolts: T) {
-        self.init(microvolts, .microvolts)
-    }
-
-    public init<T: BinaryInteger>(microvolts: T) {
-        self.init(microvolts, .microvolts)
-    }
-
-    public var microvolts: Double {
-        get { value(in: .microvolts) }
+        UnitType.convert(value, from: unit, to: .hectares)
     }
 
 }
 
-public struct Duration: Measurement {
-    public enum Unit: Double, DimensionProtocol {
-        public static var base: Duration.Unit { .seconds }
-        
-        case picoseconds = 1e-12
-        case nanoseconds = 1e-9
-        case microseconds = 1e-6
-        case milliseconds = 1e-3
-        case seconds = 1e0
-        case minutes = 60
-        case hours = 3600
-        
-        public var conversionFactor: Double { self.rawValue }
+public struct Length: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
     }
-    
-    @_implements(Measurement, valueInBaseUnit)
-    public var seconds: Double
-    
-    public init(valueInBaseUnit: Double) {
-        self.seconds = valueInBaseUnit
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .meters }
+}
+extension Length {
+    public static var meters: Self {
+        Self(symbol: "m", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var megameters: Self {
+        Self(symbol: "Mm", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kilometers: Self {
+        Self(symbol: "kM", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var hectometers: Self {
+        Self(symbol: "hm", converter: UnitConverterLinear(coefficient: 100.0))
+    }
+    public static var decameters: Self {
+        Self(symbol: "dam", converter: UnitConverterLinear(coefficient: 10.0))
+    }
+    public static var decimeters: Self {
+        Self(symbol: "dm", converter: UnitConverterLinear(coefficient: 0.1))
+    }
+    public static var centimeters: Self {
+        Self(symbol: "cm", converter: UnitConverterLinear(coefficient: 0.01))
+    }
+    public static var millimeters: Self {
+        Self(symbol: "mm", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var micrometers: Self {
+        Self(symbol: "µm", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+    public static var nanometers: Self {
+        Self(symbol: "nm", converter: UnitConverterLinear(coefficient: 1e-9))
+    }
+    public static var picometers: Self {
+        Self(symbol: "pm", converter: UnitConverterLinear(coefficient: 1e-12))
+    }
+    public static var inches: Self {
+        Self(symbol: "in", converter: UnitConverterLinear(coefficient: 0.0254))
+    }
+    public static var feet: Self {
+        Self(symbol: "ft", converter: UnitConverterLinear(coefficient: 0.3048))
+    }
+    public static var yards: Self {
+        Self(symbol: "yd", converter: UnitConverterLinear(coefficient: 0.9144))
+    }
+    public static var miles: Self {
+        Self(symbol: "mi", converter: UnitConverterLinear(coefficient: 1609.34))
+    }
+    public static var scandinavianMiles: Self {
+        Self(symbol: "smi", converter: UnitConverterLinear(coefficient: 10000))
+    }
+    public static var lightyears: Self {
+        Self(symbol: "ly", converter: UnitConverterLinear(coefficient: 9.461e+15))
+    }
+    public static var nauticalMiles: Self {
+        Self(symbol: "NM", converter: UnitConverterLinear(coefficient: 1852))
+    }
+    public static var fathoms: Self {
+        Self(symbol: "ftm", converter: UnitConverterLinear(coefficient: 1.8288))
+    }
+    public static var furlongs: Self {
+        Self(symbol: "fur", converter: UnitConverterLinear(coefficient: 201.168))
+    }
+    public static var astronomicalUnits: Self {
+        Self(symbol: "ua", converter: UnitConverterLinear(coefficient: 1.496e+11))
+    }
+    public static var parsecs: Self {
+        Self(symbol: "pc", converter: UnitConverterLinear(coefficient: 3.086e+16))
     }
 }
+extension Measurement where UnitType == Length {
+    public var meters: Double {
+    value(in: .meters)
+}
+    public static func meters(_ value: Double) -> Self {
+        Self(value, .meters)
+    }
 
+    public static func megameters(_ value: Double) -> Self {
+        Self(value, .megameters)
+    }
+
+    public var megameters: Double {
+        UnitType.convert(value, from: unit, to: .megameters)
+    }
+
+    public static func kilometers(_ value: Double) -> Self {
+        Self(value, .kilometers)
+    }
+
+    public var kilometers: Double {
+        UnitType.convert(value, from: unit, to: .kilometers)
+    }
+
+    public static func hectometers(_ value: Double) -> Self {
+        Self(value, .hectometers)
+    }
+
+    public var hectometers: Double {
+        UnitType.convert(value, from: unit, to: .hectometers)
+    }
+
+    public static func decameters(_ value: Double) -> Self {
+        Self(value, .decameters)
+    }
+
+    public var decameters: Double {
+        UnitType.convert(value, from: unit, to: .decameters)
+    }
+
+    public static func decimeters(_ value: Double) -> Self {
+        Self(value, .decimeters)
+    }
+
+    public var decimeters: Double {
+        UnitType.convert(value, from: unit, to: .decimeters)
+    }
+
+    public static func centimeters(_ value: Double) -> Self {
+        Self(value, .centimeters)
+    }
+
+    public var centimeters: Double {
+        UnitType.convert(value, from: unit, to: .centimeters)
+    }
+
+    public static func millimeters(_ value: Double) -> Self {
+        Self(value, .millimeters)
+    }
+
+    public var millimeters: Double {
+        UnitType.convert(value, from: unit, to: .millimeters)
+    }
+
+    public static func micrometers(_ value: Double) -> Self {
+        Self(value, .micrometers)
+    }
+
+    public var micrometers: Double {
+        UnitType.convert(value, from: unit, to: .micrometers)
+    }
+
+    public static func nanometers(_ value: Double) -> Self {
+        Self(value, .nanometers)
+    }
+
+    public var nanometers: Double {
+        UnitType.convert(value, from: unit, to: .nanometers)
+    }
+
+    public static func picometers(_ value: Double) -> Self {
+        Self(value, .picometers)
+    }
+
+    public var picometers: Double {
+        UnitType.convert(value, from: unit, to: .picometers)
+    }
+
+    public static func inches(_ value: Double) -> Self {
+        Self(value, .inches)
+    }
+
+    public var inches: Double {
+        UnitType.convert(value, from: unit, to: .inches)
+    }
+
+    public static func feet(_ value: Double) -> Self {
+        Self(value, .feet)
+    }
+
+    public var feet: Double {
+        UnitType.convert(value, from: unit, to: .feet)
+    }
+
+    public static func yards(_ value: Double) -> Self {
+        Self(value, .yards)
+    }
+
+    public var yards: Double {
+        UnitType.convert(value, from: unit, to: .yards)
+    }
+
+    public static func miles(_ value: Double) -> Self {
+        Self(value, .miles)
+    }
+
+    public var miles: Double {
+        UnitType.convert(value, from: unit, to: .miles)
+    }
+
+    public static func scandinavianMiles(_ value: Double) -> Self {
+        Self(value, .scandinavianMiles)
+    }
+
+    public var scandinavianMiles: Double {
+        UnitType.convert(value, from: unit, to: .scandinavianMiles)
+    }
+
+    public static func lightyears(_ value: Double) -> Self {
+        Self(value, .lightyears)
+    }
+
+    public var lightyears: Double {
+        UnitType.convert(value, from: unit, to: .lightyears)
+    }
+
+    public static func nauticalMiles(_ value: Double) -> Self {
+        Self(value, .nauticalMiles)
+    }
+
+    public var nauticalMiles: Double {
+        UnitType.convert(value, from: unit, to: .nauticalMiles)
+    }
+
+    public static func fathoms(_ value: Double) -> Self {
+        Self(value, .fathoms)
+    }
+
+    public var fathoms: Double {
+        UnitType.convert(value, from: unit, to: .fathoms)
+    }
+
+    public static func furlongs(_ value: Double) -> Self {
+        Self(value, .furlongs)
+    }
+
+    public var furlongs: Double {
+        UnitType.convert(value, from: unit, to: .furlongs)
+    }
+
+    public static func astronomicalUnits(_ value: Double) -> Self {
+        Self(value, .astronomicalUnits)
+    }
+
+    public var astronomicalUnits: Double {
+        UnitType.convert(value, from: unit, to: .astronomicalUnits)
+    }
+
+    public static func parsecs(_ value: Double) -> Self {
+        Self(value, .parsecs)
+    }
+
+    public var parsecs: Double {
+        UnitType.convert(value, from: unit, to: .parsecs)
+    }
+
+}
+
+public struct Duration: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .seconds }
+}
 extension Duration {
-    public static func seconds<T: BinaryFloatingPoint>(_ seconds: T) -> Self {
-        Self(seconds, .seconds)
+    public static var seconds: Self {
+        Self(symbol: "sec", converter: UnitConverterLinear(coefficient: 1))
     }
 
-    public static func seconds<T: BinaryInteger>(_ seconds: T) -> Self {
-        Self(seconds, .seconds)
+    public static var minutes: Self {
+        Self(symbol: "min", converter: UnitConverterLinear(coefficient: 60))
     }
-
-    public init<T: BinaryFloatingPoint>(seconds: T) {
-        self.init(seconds, .seconds)
+    public static var hours: Self {
+        Self(symbol: "hr", converter: UnitConverterLinear(coefficient: 3600))
     }
-
-    public init<T: BinaryInteger>(seconds: T) {
-        self.init(seconds, .seconds)
+    public static var milliseconds: Self {
+        Self(symbol: "ms", converter: UnitConverterLinear(coefficient: 1e-3))
+    }
+    public static var microseconds: Self {
+        Self(symbol: "μs", converter: UnitConverterLinear(coefficient: 1e-6))
+    }
+    public static var nanoseconds: Self {
+        Self(symbol: "ns", converter: UnitConverterLinear(coefficient: 1e-9))
+    }
+    public static var picoseconds: Self {
+        Self(symbol: "ps", converter: UnitConverterLinear(coefficient: 1e-12))
+    }
+}
+extension Measurement where UnitType == Duration {
+    public static func / (lhs: Measurement<Length>, rhs: Measurement<Duration>) -> Measurement<Speed> {
+        Measurement<Speed>(lhs.value / rhs.value, Speed(symbol: "\(lhs.unit.symbol)/\(rhs.unit.symbol)", converter: Speed.Converter(coefficient: lhs.unit.converter.coefficient / rhs.unit.converter.coefficient)))
     }
     
-    public static func milliseconds<T: BinaryFloatingPoint>(_ milliseconds: T) -> Self {
-        Self(milliseconds, .milliseconds)
+    public var seconds: Double {
+    value(in: .seconds)
+}
+    public static func seconds(_ value: Double) -> Self {
+        Self(value, .seconds)
     }
 
-    public static func milliseconds<T: BinaryInteger>(_ milliseconds: T) -> Self {
-        Self(milliseconds, .milliseconds)
-    }
-
-    public init<T: BinaryFloatingPoint>(milliseconds: T) {
-        self.init(milliseconds, .milliseconds)
-    }
-
-    public init<T: BinaryInteger>(milliseconds: T) {
-        self.init(milliseconds, .milliseconds)
-    }
-
-    public var milliseconds: Double {
-        get { value(in: .milliseconds) }
-    }
-
-    public static func microseconds<T: BinaryFloatingPoint>(_ microseconds: T) -> Self {
-        Self(microseconds, .microseconds)
-    }
-
-    public static func microseconds<T: BinaryInteger>(_ microseconds: T) -> Self {
-        Self(microseconds, .microseconds)
-    }
-
-    public init<T: BinaryFloatingPoint>(microseconds: T) {
-        self.init(microseconds, .microseconds)
-    }
-
-    public init<T: BinaryInteger>(microseconds: T) {
-        self.init(microseconds, .microseconds)
-    }
-
-    public var microseconds: Double {
-        get { value(in: .microseconds) }
-    }
-
-    public static func nanoseconds<T: BinaryFloatingPoint>(_ nanoseconds: T) -> Self {
-        Self(nanoseconds, .nanoseconds)
-    }
-
-    public static func nanoseconds<T: BinaryInteger>(_ nanoseconds: T) -> Self {
-        Self(nanoseconds, .nanoseconds)
-    }
-
-    public init<T: BinaryFloatingPoint>(nanoseconds: T) {
-        self.init(nanoseconds, .nanoseconds)
-    }
-
-    public init<T: BinaryInteger>(nanoseconds: T) {
-        self.init(nanoseconds, .nanoseconds)
-    }
-
-    public var nanoseconds: Double {
-        get { value(in: .nanoseconds) }
-    }
-
-    public static func picoseconds<T: BinaryFloatingPoint>(_ picoseconds: T) -> Self {
-        Self(picoseconds, .picoseconds)
-    }
-
-    public static func picoseconds<T: BinaryInteger>(_ picoseconds: T) -> Self {
-        Self(picoseconds, .picoseconds)
-    }
-
-    public init<T: BinaryFloatingPoint>(picoseconds: T) {
-        self.init(picoseconds, .picoseconds)
-    }
-
-    public init<T: BinaryInteger>(picoseconds: T) {
-        self.init(picoseconds, .picoseconds)
-    }
-
-    public var picoseconds: Double {
-        get { value(in: .picoseconds) }
-    }
-
-    public static func minutes<T: BinaryFloatingPoint>(_ minutes: T) -> Self {
-        Self(minutes, .minutes)
-    }
-
-    public static func minutes<T: BinaryInteger>(_ minutes: T) -> Self {
-        Self(minutes, .minutes)
-    }
-
-    public init<T: BinaryFloatingPoint>(minutes: T) {
-        self.init(minutes, .minutes)
-    }
-
-    public init<T: BinaryInteger>(minutes: T) {
-        self.init(minutes, .minutes)
+    public static func minutes(_ value: Double) -> Self {
+        Self(value, .minutes)
     }
 
     public var minutes: Double {
-        get { value(in: .minutes) }
+        UnitType.convert(value, from: unit, to: .minutes)
     }
 
-    public static func hours<T: BinaryFloatingPoint>(_ hours: T) -> Self {
-        Self(hours, .hours)
-    }
-
-    public static func hours<T: BinaryInteger>(_ hours: T) -> Self {
-        Self(hours, .hours)
-    }
-
-    public init<T: BinaryFloatingPoint>(hours: T) {
-        self.init(hours, .hours)
-    }
-
-    public init<T: BinaryInteger>(hours: T) {
-        self.init(hours, .hours)
+    public static func hours(_ value: Double) -> Self {
+        Self(value, .hours)
     }
 
     public var hours: Double {
-        get { value(in: .hours) }
+        UnitType.convert(value, from: unit, to: .hours)
+    }
+
+    public static func milliseconds(_ value: Double) -> Self {
+        Self(value, .milliseconds)
+    }
+
+    public var milliseconds: Double {
+        UnitType.convert(value, from: unit, to: .milliseconds)
+    }
+
+    public static func microseconds(_ value: Double) -> Self {
+        Self(value, .microseconds)
+    }
+
+    public var microseconds: Double {
+        UnitType.convert(value, from: unit, to: .microseconds)
+    }
+
+    public static func nanoseconds(_ value: Double) -> Self {
+        Self(value, .nanoseconds)
+    }
+
+    public var nanoseconds: Double {
+        UnitType.convert(value, from: unit, to: .nanoseconds)
+    }
+
+    public static func picoseconds(_ value: Double) -> Self {
+        Self(value, .picoseconds)
+    }
+
+    public var picoseconds: Double {
+        UnitType.convert(value, from: unit, to: .picoseconds)
+    }
+
+}
+
+public struct Angle: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .degrees }
+}
+extension Angle {
+    public static var degrees: Self {
+        Self(symbol: "°", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var arcMinutes: Self {
+        Self(symbol: "ʹ", converter: UnitConverterLinear(coefficient: 0.016667))
+    }
+    public static var arcSeconds: Self {
+        Self(symbol: "ʺ", converter: UnitConverterLinear(coefficient: 0.00027778))
+    }
+    public static var radians: Self {
+        Self(symbol: "rad", converter: UnitConverterLinear(coefficient: 57.2958))
+    }
+    public static var gradians: Self {
+        Self(symbol: "grad", converter: UnitConverterLinear(coefficient: 0.9))
+    }
+    public static var revolutions: Self {
+        Self(symbol: "rev", converter: UnitConverterLinear(coefficient: 360))
+    }
+}
+extension Measurement where UnitType == Angle {
+    public var degrees: Double {
+    value(in: .degrees)
+}
+    public static func degrees(_ value: Double) -> Self {
+        Self(value, .degrees)
+    }
+
+    public static func arcMinutes(_ value: Double) -> Self {
+        Self(value, .arcMinutes)
+    }
+
+    public var arcMinutes: Double {
+        UnitType.convert(value, from: unit, to: .arcMinutes)
+    }
+
+    public static func arcSeconds(_ value: Double) -> Self {
+        Self(value, .arcSeconds)
+    }
+
+    public var arcSeconds: Double {
+        UnitType.convert(value, from: unit, to: .arcSeconds)
+    }
+
+    public static func radians(_ value: Double) -> Self {
+        Self(value, .radians)
+    }
+
+    public var radians: Double {
+        UnitType.convert(value, from: unit, to: .radians)
+    }
+
+    public static func gradians(_ value: Double) -> Self {
+        Self(value, .gradians)
+    }
+
+    public var gradians: Double {
+        UnitType.convert(value, from: unit, to: .gradians)
+    }
+
+    public static func revolutions(_ value: Double) -> Self {
+        Self(value, .revolutions)
+    }
+
+    public var revolutions: Double {
+        UnitType.convert(value, from: unit, to: .revolutions)
+    }
+
+}
+
+public struct Volume: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .cubicDecimeters }
+}
+extension Volume {
+    public static var cubicDecimeters: Self {
+        Self(symbol: "dm³", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var megaliters: Self {
+        Self(symbol: "ML", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kiloliters: Self {
+        Self(symbol: "kL", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var deciliters: Self {
+        Self(symbol: "dL", converter: UnitConverterLinear(coefficient: 0.1))
+    }
+    public static var centiliters: Self {
+        Self(symbol: "cL", converter: UnitConverterLinear(coefficient: 0.01))
+    }
+    public static var milliliters: Self {
+        Self(symbol: "mL", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var cubicKilometers: Self {
+        Self(symbol: "km³", converter: UnitConverterLinear(coefficient: 1e12))
+    }
+    public static var cubicMeters: Self {
+        Self(symbol: "m³", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var cubicMillimeters: Self {
+        Self(symbol: "mm³", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+    public static var cubicInches: Self {
+        Self(symbol: "in³", converter: UnitConverterLinear(coefficient: 0.0163871))
+    }
+    public static var cubicFeet: Self {
+        Self(symbol: "ft³", converter: UnitConverterLinear(coefficient: 28.3168))
+    }
+    public static var cubicYards: Self {
+        Self(symbol: "yd³", converter: UnitConverterLinear(coefficient: 764.555))
+    }
+    public static var cubicMiles: Self {
+        Self(symbol: "mi³", converter: UnitConverterLinear(coefficient: 4.168e+12))
+    }
+    public static var acreFeet: Self {
+        Self(symbol: "af", converter: UnitConverterLinear(coefficient: 1.233e+6))
+    }
+    public static var bushels: Self {
+        Self(symbol: "bsh", converter: UnitConverterLinear(coefficient: 35.2391))
+    }
+    public static var teaspoons: Self {
+        Self(symbol: "tsp", converter: UnitConverterLinear(coefficient: 0.00492892))
+    }
+    public static var tablespoons: Self {
+        Self(symbol: "tbsp", converter: UnitConverterLinear(coefficient: 0.0147868))
+    }
+    public static var fluidOunces: Self {
+        Self(symbol: "fl oz", converter: UnitConverterLinear(coefficient: 0.0295735))
+    }
+    public static var cups: Self {
+        Self(symbol: "cup", converter: UnitConverterLinear(coefficient: 0.24))
+    }
+    public static var pints: Self {
+        Self(symbol: "pt", converter: UnitConverterLinear(coefficient: 0.473176))
+    }
+    public static var quarts: Self {
+        Self(symbol: "qt", converter: UnitConverterLinear(coefficient: 0.946353))
+    }
+    public static var gallons: Self {
+        Self(symbol: "gal", converter: UnitConverterLinear(coefficient: 3.78541))
+    }
+    public static var imperialTeaspoons: Self {
+        Self(symbol: "tsp", converter: UnitConverterLinear(coefficient: 0.00591939))
+    }
+    public static var imperialTablespoons: Self {
+        Self(symbol: "tbsp", converter: UnitConverterLinear(coefficient: 0.0177582))
+    }
+    public static var imperialFluidOunces: Self {
+        Self(symbol: "fl oz", converter: UnitConverterLinear(coefficient: 0.0284131))
+    }
+    public static var imperialPints: Self {
+        Self(symbol: "pt", converter: UnitConverterLinear(coefficient: 0.568261))
+    }
+    public static var imperialQuarts: Self {
+        Self(symbol: "qt", converter: UnitConverterLinear(coefficient: 1.13652))
+    }
+    public static var imperialGallons: Self {
+        Self(symbol: "gal", converter: UnitConverterLinear(coefficient: 4.54609))
+    }
+    public static var metricCups: Self {
+        Self(symbol: "metric cup", converter: UnitConverterLinear(coefficient: 0.25))
+    }
+}
+extension Measurement where UnitType == Volume {
+    public var cubicDecimeters: Double {
+    value(in: .cubicDecimeters)
+}
+    public static func cubicDecimeters(_ value: Double) -> Self {
+        Self(value, .cubicDecimeters)
+    }
+
+    public static func megaliters(_ value: Double) -> Self {
+        Self(value, .megaliters)
+    }
+
+    public var megaliters: Double {
+        UnitType.convert(value, from: unit, to: .megaliters)
+    }
+
+    public static func kiloliters(_ value: Double) -> Self {
+        Self(value, .kiloliters)
+    }
+
+    public var kiloliters: Double {
+        UnitType.convert(value, from: unit, to: .kiloliters)
+    }
+
+    public static func deciliters(_ value: Double) -> Self {
+        Self(value, .deciliters)
+    }
+
+    public var deciliters: Double {
+        UnitType.convert(value, from: unit, to: .deciliters)
+    }
+
+    public static func centiliters(_ value: Double) -> Self {
+        Self(value, .centiliters)
+    }
+
+    public var centiliters: Double {
+        UnitType.convert(value, from: unit, to: .centiliters)
+    }
+
+    public static func milliliters(_ value: Double) -> Self {
+        Self(value, .milliliters)
+    }
+
+    public var milliliters: Double {
+        UnitType.convert(value, from: unit, to: .milliliters)
+    }
+
+    public static func cubicKilometers(_ value: Double) -> Self {
+        Self(value, .cubicKilometers)
+    }
+
+    public var cubicKilometers: Double {
+        UnitType.convert(value, from: unit, to: .cubicKilometers)
+    }
+
+    public static func cubicMeters(_ value: Double) -> Self {
+        Self(value, .cubicMeters)
+    }
+
+    public var cubicMeters: Double {
+        UnitType.convert(value, from: unit, to: .cubicMeters)
+    }
+
+    public static func cubicMillimeters(_ value: Double) -> Self {
+        Self(value, .cubicMillimeters)
+    }
+
+    public var cubicMillimeters: Double {
+        UnitType.convert(value, from: unit, to: .cubicMillimeters)
+    }
+
+    public static func cubicInches(_ value: Double) -> Self {
+        Self(value, .cubicInches)
+    }
+
+    public var cubicInches: Double {
+        UnitType.convert(value, from: unit, to: .cubicInches)
+    }
+
+    public static func cubicFeet(_ value: Double) -> Self {
+        Self(value, .cubicFeet)
+    }
+
+    public var cubicFeet: Double {
+        UnitType.convert(value, from: unit, to: .cubicFeet)
+    }
+
+    public static func cubicYards(_ value: Double) -> Self {
+        Self(value, .cubicYards)
+    }
+
+    public var cubicYards: Double {
+        UnitType.convert(value, from: unit, to: .cubicYards)
+    }
+
+    public static func cubicMiles(_ value: Double) -> Self {
+        Self(value, .cubicMiles)
+    }
+
+    public var cubicMiles: Double {
+        UnitType.convert(value, from: unit, to: .cubicMiles)
+    }
+
+    public static func acreFeet(_ value: Double) -> Self {
+        Self(value, .acreFeet)
+    }
+
+    public var acreFeet: Double {
+        UnitType.convert(value, from: unit, to: .acreFeet)
+    }
+
+    public static func bushels(_ value: Double) -> Self {
+        Self(value, .bushels)
+    }
+
+    public var bushels: Double {
+        UnitType.convert(value, from: unit, to: .bushels)
+    }
+
+    public static func teaspoons(_ value: Double) -> Self {
+        Self(value, .teaspoons)
+    }
+
+    public var teaspoons: Double {
+        UnitType.convert(value, from: unit, to: .teaspoons)
+    }
+
+    public static func tablespoons(_ value: Double) -> Self {
+        Self(value, .tablespoons)
+    }
+
+    public var tablespoons: Double {
+        UnitType.convert(value, from: unit, to: .tablespoons)
+    }
+
+    public static func fluidOunces(_ value: Double) -> Self {
+        Self(value, .fluidOunces)
+    }
+
+    public var fluidOunces: Double {
+        UnitType.convert(value, from: unit, to: .fluidOunces)
+    }
+
+    public static func cups(_ value: Double) -> Self {
+        Self(value, .cups)
+    }
+
+    public var cups: Double {
+        UnitType.convert(value, from: unit, to: .cups)
+    }
+
+    public static func pints(_ value: Double) -> Self {
+        Self(value, .pints)
+    }
+
+    public var pints: Double {
+        UnitType.convert(value, from: unit, to: .pints)
+    }
+
+    public static func quarts(_ value: Double) -> Self {
+        Self(value, .quarts)
+    }
+
+    public var quarts: Double {
+        UnitType.convert(value, from: unit, to: .quarts)
+    }
+
+    public static func gallons(_ value: Double) -> Self {
+        Self(value, .gallons)
+    }
+
+    public var gallons: Double {
+        UnitType.convert(value, from: unit, to: .gallons)
+    }
+
+    public static func imperialTeaspoons(_ value: Double) -> Self {
+        Self(value, .imperialTeaspoons)
+    }
+
+    public var imperialTeaspoons: Double {
+        UnitType.convert(value, from: unit, to: .imperialTeaspoons)
+    }
+
+    public static func imperialTablespoons(_ value: Double) -> Self {
+        Self(value, .imperialTablespoons)
+    }
+
+    public var imperialTablespoons: Double {
+        UnitType.convert(value, from: unit, to: .imperialTablespoons)
+    }
+
+    public static func imperialFluidOunces(_ value: Double) -> Self {
+        Self(value, .imperialFluidOunces)
+    }
+
+    public var imperialFluidOunces: Double {
+        UnitType.convert(value, from: unit, to: .imperialFluidOunces)
+    }
+
+    public static func imperialPints(_ value: Double) -> Self {
+        Self(value, .imperialPints)
+    }
+
+    public var imperialPints: Double {
+        UnitType.convert(value, from: unit, to: .imperialPints)
+    }
+
+    public static func imperialQuarts(_ value: Double) -> Self {
+        Self(value, .imperialQuarts)
+    }
+
+    public var imperialQuarts: Double {
+        UnitType.convert(value, from: unit, to: .imperialQuarts)
+    }
+
+    public static func imperialGallons(_ value: Double) -> Self {
+        Self(value, .imperialGallons)
+    }
+
+    public var imperialGallons: Double {
+        UnitType.convert(value, from: unit, to: .imperialGallons)
+    }
+
+    public static func metricCups(_ value: Double) -> Self {
+        Self(value, .metricCups)
+    }
+
+    public var metricCups: Double {
+        UnitType.convert(value, from: unit, to: .metricCups)
+    }
+
+}
+
+public struct Mass: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .kilograms }
+}
+extension Mass {
+    public static var kilograms: Self {
+        Self(symbol: "kg", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var grams: Self {
+        Self(symbol: "g", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var decigrams: Self {
+        Self(symbol: "dg", converter: UnitConverterLinear(coefficient: 0.0001))
+    }
+    public static var centigrams: Self {
+        Self(symbol: "cg", converter: UnitConverterLinear(coefficient: 0.00001))
+    }
+    public static var milligrams: Self {
+        Self(symbol: "mg", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+    public static var micrograms: Self {
+        Self(symbol: "µg", converter: UnitConverterLinear(coefficient: 1e9))
+    }
+    public static var nanograms: Self {
+        Self(symbol: "ng", converter: UnitConverterLinear(coefficient: 1e-12))
+    }
+    public static var picograms: Self {
+        Self(symbol: "pg", converter: UnitConverterLinear(coefficient: 1e-15))
+    }
+    public static var ounces: Self {
+        Self(symbol: "oz", converter: UnitConverterLinear(coefficient: 0.0283495))
+    }
+    public static var pounds: Self {
+        Self(symbol: "lb", converter: UnitConverterLinear(coefficient: 0.453592))
+    }
+    public static var stones: Self {
+        Self(symbol: "st", converter: UnitConverterLinear(coefficient: 0.157473))
+    }
+    public static var metricTons: Self {
+        Self(symbol: "t", converter: UnitConverterLinear(coefficient: 1000))
+    }
+    public static var shortTons: Self {
+        Self(symbol: "ton", converter: UnitConverterLinear(coefficient: 907.185))
+    }
+    public static var carats: Self {
+        Self(symbol: "ct", converter: UnitConverterLinear(coefficient: 0.0002))
+    }
+    public static var ouncesTroy: Self {
+        Self(symbol: "oz t", converter: UnitConverterLinear(coefficient: 0.03110348))
+    }
+    public static var slugs: Self {
+        Self(symbol: "slug", converter: UnitConverterLinear(coefficient: 14.5939))
+    }
+}
+extension Measurement where UnitType == Mass {
+    public var kilograms: Double {
+    value(in: .kilograms)
+}
+    public static func kilograms(_ value: Double) -> Self {
+        Self(value, .kilograms)
+    }
+
+    public static func grams(_ value: Double) -> Self {
+        Self(value, .grams)
+    }
+
+    public var grams: Double {
+        UnitType.convert(value, from: unit, to: .grams)
+    }
+
+    public static func decigrams(_ value: Double) -> Self {
+        Self(value, .decigrams)
+    }
+
+    public var decigrams: Double {
+        UnitType.convert(value, from: unit, to: .decigrams)
+    }
+
+    public static func centigrams(_ value: Double) -> Self {
+        Self(value, .centigrams)
+    }
+
+    public var centigrams: Double {
+        UnitType.convert(value, from: unit, to: .centigrams)
+    }
+
+    public static func milligrams(_ value: Double) -> Self {
+        Self(value, .milligrams)
+    }
+
+    public var milligrams: Double {
+        UnitType.convert(value, from: unit, to: .milligrams)
+    }
+
+    public static func micrograms(_ value: Double) -> Self {
+        Self(value, .micrograms)
+    }
+
+    public var micrograms: Double {
+        UnitType.convert(value, from: unit, to: .micrograms)
+    }
+
+    public static func nanograms(_ value: Double) -> Self {
+        Self(value, .nanograms)
+    }
+
+    public var nanograms: Double {
+        UnitType.convert(value, from: unit, to: .nanograms)
+    }
+
+    public static func picograms(_ value: Double) -> Self {
+        Self(value, .picograms)
+    }
+
+    public var picograms: Double {
+        UnitType.convert(value, from: unit, to: .picograms)
+    }
+
+    public static func ounces(_ value: Double) -> Self {
+        Self(value, .ounces)
+    }
+
+    public var ounces: Double {
+        UnitType.convert(value, from: unit, to: .ounces)
+    }
+
+    public static func pounds(_ value: Double) -> Self {
+        Self(value, .pounds)
+    }
+
+    public var pounds: Double {
+        UnitType.convert(value, from: unit, to: .pounds)
+    }
+
+    public static func stones(_ value: Double) -> Self {
+        Self(value, .stones)
+    }
+
+    public var stones: Double {
+        UnitType.convert(value, from: unit, to: .stones)
+    }
+
+    public static func metricTons(_ value: Double) -> Self {
+        Self(value, .metricTons)
+    }
+
+    public var metricTons: Double {
+        UnitType.convert(value, from: unit, to: .metricTons)
+    }
+
+    public static func shortTons(_ value: Double) -> Self {
+        Self(value, .shortTons)
+    }
+
+    public var shortTons: Double {
+        UnitType.convert(value, from: unit, to: .shortTons)
+    }
+
+    public static func carats(_ value: Double) -> Self {
+        Self(value, .carats)
+    }
+
+    public var carats: Double {
+        UnitType.convert(value, from: unit, to: .carats)
+    }
+
+    public static func ouncesTroy(_ value: Double) -> Self {
+        Self(value, .ouncesTroy)
+    }
+
+    public var ouncesTroy: Double {
+        UnitType.convert(value, from: unit, to: .ouncesTroy)
+    }
+
+    public static func slugs(_ value: Double) -> Self {
+        Self(value, .slugs)
+    }
+
+    public var slugs: Double {
+        UnitType.convert(value, from: unit, to: .slugs)
+    }
+
+}
+
+public struct Pressure: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .newtonsPerMetersSquared }
+}
+extension Pressure {
+    public static var newtonsPerMetersSquared: Self {
+        Self(symbol: "N/m²", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var gigapascals: Self {
+        Self(symbol: "GPa", converter: UnitConverterLinear(coefficient: 1e9))
+    }
+    public static var megapascals: Self {
+        Self(symbol: "MPa", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kilopascals: Self {
+        Self(symbol: "kPa", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var hectopascals: Self {
+        Self(symbol: "hPa", converter: UnitConverterLinear(coefficient: 100.0))
+    }
+    public static var inchesOfMercury: Self {
+        Self(symbol: "inHg", converter: UnitConverterLinear(coefficient: 3386.39))
+    }
+    public static var bars: Self {
+        Self(symbol: "bar", converter: UnitConverterLinear(coefficient: 100000))
+    }
+    public static var millibars: Self {
+        Self(symbol: "mbar", converter: UnitConverterLinear(coefficient: 100))
+    }
+    public static var millimetersOfMercury: Self {
+        Self(symbol: "mmHg", converter: UnitConverterLinear(coefficient: 133.322))
+    }
+    public static var poundsForcePerSquareInch: Self {
+        Self(symbol: "psi", converter: UnitConverterLinear(coefficient: 6894.76))
+    }
+}
+extension Measurement where UnitType == Pressure {
+    public var newtonsPerMetersSquared: Double {
+    value(in: .newtonsPerMetersSquared)
+}
+    public static func newtonsPerMetersSquared(_ value: Double) -> Self {
+        Self(value, .newtonsPerMetersSquared)
+    }
+
+    public static func gigapascals(_ value: Double) -> Self {
+        Self(value, .gigapascals)
+    }
+
+    public var gigapascals: Double {
+        UnitType.convert(value, from: unit, to: .gigapascals)
+    }
+
+    public static func megapascals(_ value: Double) -> Self {
+        Self(value, .megapascals)
+    }
+
+    public var megapascals: Double {
+        UnitType.convert(value, from: unit, to: .megapascals)
+    }
+
+    public static func kilopascals(_ value: Double) -> Self {
+        Self(value, .kilopascals)
+    }
+
+    public var kilopascals: Double {
+        UnitType.convert(value, from: unit, to: .kilopascals)
+    }
+
+    public static func hectopascals(_ value: Double) -> Self {
+        Self(value, .hectopascals)
+    }
+
+    public var hectopascals: Double {
+        UnitType.convert(value, from: unit, to: .hectopascals)
+    }
+
+    public static func inchesOfMercury(_ value: Double) -> Self {
+        Self(value, .inchesOfMercury)
+    }
+
+    public var inchesOfMercury: Double {
+        UnitType.convert(value, from: unit, to: .inchesOfMercury)
+    }
+
+    public static func bars(_ value: Double) -> Self {
+        Self(value, .bars)
+    }
+
+    public var bars: Double {
+        UnitType.convert(value, from: unit, to: .bars)
+    }
+
+    public static func millibars(_ value: Double) -> Self {
+        Self(value, .millibars)
+    }
+
+    public var millibars: Double {
+        UnitType.convert(value, from: unit, to: .millibars)
+    }
+
+    public static func millimetersOfMercury(_ value: Double) -> Self {
+        Self(value, .millimetersOfMercury)
+    }
+
+    public var millimetersOfMercury: Double {
+        UnitType.convert(value, from: unit, to: .millimetersOfMercury)
+    }
+
+    public static func poundsForcePerSquareInch(_ value: Double) -> Self {
+        Self(value, .poundsForcePerSquareInch)
+    }
+
+    public var poundsForcePerSquareInch: Double {
+        UnitType.convert(value, from: unit, to: .poundsForcePerSquareInch)
+    }
+
+}
+
+public struct Acceleration: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .metersPerSecondSquared }
+}
+extension Acceleration {
+    public static var metersPerSecondSquared: Self {
+        Self(symbol: "m/s²", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var gravity: Self {
+        Self(symbol: "g", converter: UnitConverterLinear(coefficient: 9.81))
+    }
+}
+extension Measurement where UnitType == Acceleration {
+    public var metersPerSecondSquared: Double {
+    value(in: .metersPerSecondSquared)
+}
+    public static func metersPerSecondSquared(_ value: Double) -> Self {
+        Self(value, .metersPerSecondSquared)
+    }
+
+    public static func gravity(_ value: Double) -> Self {
+        Self(value, .gravity)
+    }
+
+    public var gravity: Double {
+        UnitType.convert(value, from: unit, to: .gravity)
+    }
+
+}
+
+public struct Frequency: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .hertz }
+}
+extension Frequency {
+    public static var hertz: Self {
+        Self(symbol: "Hz", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var terahertz: Self {
+        Self(symbol: "THz", converter: UnitConverterLinear(coefficient: 1e12))
+    }
+    public static var gigahertz: Self {
+        Self(symbol: "GHz", converter: UnitConverterLinear(coefficient: 1e9))
+    }
+    public static var megahertz: Self {
+        Self(symbol: "MHz", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kilohertz: Self {
+        Self(symbol: "kHz", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var millihertz: Self {
+        Self(symbol: "mHz", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var microhertz: Self {
+        Self(symbol: "µHz", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+    public static var nanohertz: Self {
+        Self(symbol: "nHz", converter: UnitConverterLinear(coefficient: 1e-9))
+    }
+}
+extension Measurement where UnitType == Frequency {
+    public var hertz: Double {
+    value(in: .hertz)
+}
+    public static func hertz(_ value: Double) -> Self {
+        Self(value, .hertz)
+    }
+
+    public static func terahertz(_ value: Double) -> Self {
+        Self(value, .terahertz)
+    }
+
+    public var terahertz: Double {
+        UnitType.convert(value, from: unit, to: .terahertz)
+    }
+
+    public static func gigahertz(_ value: Double) -> Self {
+        Self(value, .gigahertz)
+    }
+
+    public var gigahertz: Double {
+        UnitType.convert(value, from: unit, to: .gigahertz)
+    }
+
+    public static func megahertz(_ value: Double) -> Self {
+        Self(value, .megahertz)
+    }
+
+    public var megahertz: Double {
+        UnitType.convert(value, from: unit, to: .megahertz)
+    }
+
+    public static func kilohertz(_ value: Double) -> Self {
+        Self(value, .kilohertz)
+    }
+
+    public var kilohertz: Double {
+        UnitType.convert(value, from: unit, to: .kilohertz)
+    }
+
+    public static func millihertz(_ value: Double) -> Self {
+        Self(value, .millihertz)
+    }
+
+    public var millihertz: Double {
+        UnitType.convert(value, from: unit, to: .millihertz)
+    }
+
+    public static func microhertz(_ value: Double) -> Self {
+        Self(value, .microhertz)
+    }
+
+    public var microhertz: Double {
+        UnitType.convert(value, from: unit, to: .microhertz)
+    }
+
+    public static func nanohertz(_ value: Double) -> Self {
+        Self(value, .nanohertz)
+    }
+
+    public var nanohertz: Double {
+        UnitType.convert(value, from: unit, to: .nanohertz)
+    }
+
+}
+
+public struct Speed: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .metersPerSecond }
+}
+extension Speed {
+    public static var metersPerSecond: Self {
+        Self(symbol: "m/s", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var kilometersPerHour: Self {
+        Self(symbol: "km/h", converter: UnitConverterLinear(coefficient: 0.277778))
+    }
+    public static var milesPerHour: Self {
+        Self(symbol: "mph", converter: UnitConverterLinear(coefficient: 0.44704))
+    }
+    public static var knots: Self {
+        Self(symbol: "kn", converter: UnitConverterLinear(coefficient: 0.514444))
+    }
+}
+extension Measurement where UnitType == Speed {
+    /// ```swift
+    /// let acceleration = Measurement<Speed>.metersPerSecond(3).perSecond()
+    /// ```
+    public func perSecond() -> Measurement<Acceleration> {
+        Measurement<Acceleration>(value: metersPerSecond, unit: .metersPerSecondSquared)
+    }
+    
+    public var metersPerSecond: Double {
+    value(in: .metersPerSecond)
+}
+    
+    public static func metersPerSecond(_ value: Double) -> Self {
+        Self(value, .metersPerSecond)
+    }
+
+    public static func kilometersPerHour(_ value: Double) -> Self {
+        Self(value, .kilometersPerHour)
+    }
+
+    public var kilometersPerHour: Double {
+        UnitType.convert(value, from: unit, to: .kilometersPerHour)
+    }
+
+    public static func milesPerHour(_ value: Double) -> Self {
+        Self(value, .milesPerHour)
+    }
+
+    public var milesPerHour: Double {
+        UnitType.convert(value, from: unit, to: .milesPerHour)
+    }
+
+    public static func knots(_ value: Double) -> Self {
+        Self(value, .knots)
+    }
+
+    public var knots: Double {
+        UnitType.convert(value, from: unit, to: .knots)
+    }
+
+}
+
+public struct Energy: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .joules }
+}
+extension Energy {
+    public static var joules: Self {
+        Self(symbol: "J", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var kilojoules: Self {
+        Self(symbol: "kJ", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var kilocalories: Self {
+        Self(symbol: "kCal", converter: UnitConverterLinear(coefficient: 4184.0))
+    }
+    public static var calories: Self {
+        Self(symbol: "cal", converter: UnitConverterLinear(coefficient: 4.184))
+    }
+    public static var kilowattHours: Self {
+        Self(symbol: "kWh", converter: UnitConverterLinear(coefficient: 3600000.0))
+    }
+}
+extension Measurement where UnitType == Energy {
+    public var joules: Double {
+    value(in: .joules)
+}
+    public static func joules(_ value: Double) -> Self {
+        Self(value, .joules)
+    }
+
+    public static func kilojoules(_ value: Double) -> Self {
+        Self(value, .kilojoules)
+    }
+
+    public var kilojoules: Double {
+        UnitType.convert(value, from: unit, to: .kilojoules)
+    }
+
+    public static func kilocalories(_ value: Double) -> Self {
+        Self(value, .kilocalories)
+    }
+
+    public var kilocalories: Double {
+        UnitType.convert(value, from: unit, to: .kilocalories)
+    }
+
+    public static func calories(_ value: Double) -> Self {
+        Self(value, .calories)
+    }
+
+    public var calories: Double {
+        UnitType.convert(value, from: unit, to: .calories)
+    }
+
+    public static func kilowattHours(_ value: Double) -> Self {
+        Self(value, .kilowattHours)
+    }
+
+    public var kilowattHours: Double {
+        UnitType.convert(value, from: unit, to: .kilowattHours)
+    }
+
+}
+
+public struct Power: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .watts }
+}
+extension Power {
+    public static var watts: Self {
+        Self(symbol: "W", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var terawatts: Self {
+        Self(symbol: "TW", converter: UnitConverterLinear(coefficient: 1e12))
+    }
+    public static var gigawatts: Self {
+        Self(symbol: "GW", converter: UnitConverterLinear(coefficient: 1e9))
+    }
+    public static var megawatts: Self {
+        Self(symbol: "MW", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kilowatts: Self {
+        Self(symbol: "kW", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var milliwatts: Self {
+        Self(symbol: "mW", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var microwatts: Self {
+        Self(symbol: "µW", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+    public static var nanowatts: Self {
+        Self(symbol: "nW", converter: UnitConverterLinear(coefficient: 1e-9))
+    }
+    public static var picowatts: Self {
+        Self(symbol: "pW", converter: UnitConverterLinear(coefficient: 1e-12))
+    }
+    public static var femtowatts: Self {
+        Self(symbol: "fW", converter: UnitConverterLinear(coefficient: 1e-15))
+    }
+    public static var horsepower: Self {
+        Self(symbol: "hp", converter: UnitConverterLinear(coefficient: 745.7))
+    }
+}
+extension Measurement where UnitType == Power {
+    public var watts: Double {
+    value(in: .watts)
+}
+    public static func watts(_ value: Double) -> Self {
+        Self(value, .watts)
+    }
+
+    public static func terawatts(_ value: Double) -> Self {
+        Self(value, .terawatts)
+    }
+
+    public var terawatts: Double {
+        UnitType.convert(value, from: unit, to: .terawatts)
+    }
+
+    public static func gigawatts(_ value: Double) -> Self {
+        Self(value, .gigawatts)
+    }
+
+    public var gigawatts: Double {
+        UnitType.convert(value, from: unit, to: .gigawatts)
+    }
+
+    public static func megawatts(_ value: Double) -> Self {
+        Self(value, .megawatts)
+    }
+
+    public var megawatts: Double {
+        UnitType.convert(value, from: unit, to: .megawatts)
+    }
+
+    public static func kilowatts(_ value: Double) -> Self {
+        Self(value, .kilowatts)
+    }
+
+    public var kilowatts: Double {
+        UnitType.convert(value, from: unit, to: .kilowatts)
+    }
+
+    public static func milliwatts(_ value: Double) -> Self {
+        Self(value, .milliwatts)
+    }
+
+    public var milliwatts: Double {
+        UnitType.convert(value, from: unit, to: .milliwatts)
+    }
+
+    public static func microwatts(_ value: Double) -> Self {
+        Self(value, .microwatts)
+    }
+
+    public var microwatts: Double {
+        UnitType.convert(value, from: unit, to: .microwatts)
+    }
+
+    public static func nanowatts(_ value: Double) -> Self {
+        Self(value, .nanowatts)
+    }
+
+    public var nanowatts: Double {
+        UnitType.convert(value, from: unit, to: .nanowatts)
+    }
+
+    public static func picowatts(_ value: Double) -> Self {
+        Self(value, .picowatts)
+    }
+
+    public var picowatts: Double {
+        UnitType.convert(value, from: unit, to: .picowatts)
+    }
+
+    public static func femtowatts(_ value: Double) -> Self {
+        Self(value, .femtowatts)
+    }
+
+    public var femtowatts: Double {
+        UnitType.convert(value, from: unit, to: .femtowatts)
+    }
+
+    public static func horsepower(_ value: Double) -> Self {
+        Self(value, .horsepower)
+    }
+
+    public var horsepower: Double {
+        UnitType.convert(value, from: unit, to: .horsepower)
+    }
+
+}
+
+public struct Temperature: Dimension, Hashable, Codable {
+    public var symbol: String
+    public var converter: UnitConverterLinear
+    
+    public static var kelvin: Self {
+        Self(symbol: "K", converter: UnitConverterLinear(coefficient: 1, constant: 0))
+    }
+    
+    public static var celsius: Self {
+        Self(symbol: "°C", converter: UnitConverterLinear(coefficient: 1.0, constant: 273.15))
+    }
+    
+    public static var fahrenheit: Self {
+        Self(symbol: "°F", converter: UnitConverterLinear(coefficient: 0.55555555555556, constant: 255.37222222222427))
+    }
+    
+    public init(symbol: String, converter: UnitConverterLinear) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+    
+    public static var base: Temperature { .kelvin }
+}
+extension Measurement where UnitType == Temperature {
+    public var celsius: Double {
+    value(in: .celsius)
+}
+    public static func celsius(_ value: Double) -> Self {
+        Self(value, .celsius)
+    }
+
+    public static func kelvin(_ value: Double) -> Self {
+        Self(value, .kelvin)
+    }
+
+    public var kelvin: Double {
+        UnitType.convert(value, from: unit, to: .kelvin)
+    }
+
+    public static func fahrenheit(_ value: Double) -> Self {
+        Self(value, .fahrenheit)
+    }
+
+    public var fahrenheit: Double {
+        UnitType.convert(value, from: unit, to: .fahrenheit)
+    }
+
+}
+
+public struct Illuminance: Dimension, Hashable, Codable {
+    public init(symbol: String, converter: UnitConverterLinear) {
+        self.converter = converter
+        self.symbol = symbol
+    }
+    
+    public var converter: UnitConverterLinear
+    public var symbol: String
+    
+    public static var lux: Self { Self(symbol: "lx", converter: Converter(coefficient: 1))}
+    public static var base: Self { .lux }
+}
+public extension Measurement where UnitType == Illuminance {
+    var lux: Double {
+        value
+    }
+    
+    init(lux: Double) {
+        self.init(lux, .lux)
+    }
+    
+    static func lux(_ lux: Double) -> Self {
+        self.init(lux: lux)
     }
 }
 
+public struct ElectricCharge: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .coulombs }
+}
+extension ElectricCharge {
+    public static var coulombs: Self {
+        Self(symbol: "C", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var megaampereHours: Self {
+        Self(symbol: "MAh", converter: UnitConverterLinear(coefficient: 3.6e9))
+    }
+    public static var kiloampereHours: Self {
+        Self(symbol: "kAh", converter: UnitConverterLinear(coefficient: 3600000.0))
+    }
+    public static var ampereHours: Self {
+        Self(symbol: "Ah", converter: UnitConverterLinear(coefficient: 3600.0))
+    }
+    public static var milliampereHours: Self {
+        Self(symbol: "mAh", converter: UnitConverterLinear(coefficient: 3.6))
+    }
+    public static var microampereHours: Self {
+        Self(symbol: "µAh", converter: UnitConverterLinear(coefficient: 0.0036))
+    }
+}
+extension Measurement where UnitType == ElectricCharge {
+    public var coulombs: Double {
+    value(in: .coulombs)
+}
+    public static func coulombs(_ value: Double) -> Self {
+        Self(value, .coulombs)
+    }
+
+    public static func megaampereHours(_ value: Double) -> Self {
+        Self(value, .megaampereHours)
+    }
+
+    public var megaampereHours: Double {
+        UnitType.convert(value, from: unit, to: .megaampereHours)
+    }
+
+    public static func kiloampereHours(_ value: Double) -> Self {
+        Self(value, .kiloampereHours)
+    }
+
+    public var kiloampereHours: Double {
+        UnitType.convert(value, from: unit, to: .kiloampereHours)
+    }
+
+    public static func ampereHours(_ value: Double) -> Self {
+        Self(value, .ampereHours)
+    }
+
+    public var ampereHours: Double {
+        UnitType.convert(value, from: unit, to: .ampereHours)
+    }
+
+    public static func milliampereHours(_ value: Double) -> Self {
+        Self(value, .milliampereHours)
+    }
+
+    public var milliampereHours: Double {
+        UnitType.convert(value, from: unit, to: .milliampereHours)
+    }
+
+    public static func microampereHours(_ value: Double) -> Self {
+        Self(value, .microampereHours)
+    }
+
+    public var microampereHours: Double {
+        UnitType.convert(value, from: unit, to: .microampereHours)
+    }
+
+}
+
+public struct ElectricCurrent: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .coulombs }
+}
+extension ElectricCurrent {
+    public static var coulombs: Self {
+        Self(symbol: "C", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var megaampereHours: Self {
+        Self(symbol: "MAh", converter: UnitConverterLinear(coefficient: 3.6e9))
+    }
+    public static var kiloampereHours: Self {
+        Self(symbol: "kAh", converter: UnitConverterLinear(coefficient: 3600000.0))
+    }
+    public static var ampereHours: Self {
+        Self(symbol: "Ah", converter: UnitConverterLinear(coefficient: 3600.0))
+    }
+    public static var milliampereHours: Self {
+        Self(symbol: "mAh", converter: UnitConverterLinear(coefficient: 3.6))
+    }
+    public static var microampereHours: Self {
+        Self(symbol: "µAh", converter: UnitConverterLinear(coefficient: 0.0036))
+    }
+}
+extension Measurement where UnitType == ElectricCurrent {
+    public var coulombs: Double {
+    value(in: .coulombs)
+}
+    public static func coulombs(_ value: Double) -> Self {
+        Self(value, .coulombs)
+    }
+
+    public static func megaampereHours(_ value: Double) -> Self {
+        Self(value, .megaampereHours)
+    }
+
+    public var megaampereHours: Double {
+        UnitType.convert(value, from: unit, to: .megaampereHours)
+    }
+
+    public static func kiloampereHours(_ value: Double) -> Self {
+        Self(value, .kiloampereHours)
+    }
+
+    public var kiloampereHours: Double {
+        UnitType.convert(value, from: unit, to: .kiloampereHours)
+    }
+
+    public static func ampereHours(_ value: Double) -> Self {
+        Self(value, .ampereHours)
+    }
+
+    public var ampereHours: Double {
+        UnitType.convert(value, from: unit, to: .ampereHours)
+    }
+
+    public static func milliampereHours(_ value: Double) -> Self {
+        Self(value, .milliampereHours)
+    }
+
+    public var milliampereHours: Double {
+        UnitType.convert(value, from: unit, to: .milliampereHours)
+    }
+
+    public static func microampereHours(_ value: Double) -> Self {
+        Self(value, .microampereHours)
+    }
+
+    public var microampereHours: Double {
+        UnitType.convert(value, from: unit, to: .microampereHours)
+    }
+
+}
+
+public struct ElectricPotentialDifference: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .volts }
+}
+extension ElectricPotentialDifference {
+    public static var volts: Self {
+        Self(symbol: "V", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var megavolts: Self {
+        Self(symbol: "MV", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kilovolts: Self {
+        Self(symbol: "kV", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var millivolts: Self {
+        Self(symbol: "mV", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var microvolts: Self {
+        Self(symbol: "µV", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+}
+extension Measurement where UnitType == ElectricPotentialDifference {
+    public var volts: Double {
+    value(in: .volts)
+}
+    public static func volts(_ value: Double) -> Self {
+        Self(value, .volts)
+    }
+
+    public static func megavolts(_ value: Double) -> Self {
+        Self(value, .megavolts)
+    }
+
+    public var megavolts: Double {
+        UnitType.convert(value, from: unit, to: .megavolts)
+    }
+
+    public static func kilovolts(_ value: Double) -> Self {
+        Self(value, .kilovolts)
+    }
+
+    public var kilovolts: Double {
+        UnitType.convert(value, from: unit, to: .kilovolts)
+    }
+
+    public static func millivolts(_ value: Double) -> Self {
+        Self(value, .millivolts)
+    }
+
+    public var millivolts: Double {
+        UnitType.convert(value, from: unit, to: .millivolts)
+    }
+
+    public static func microvolts(_ value: Double) -> Self {
+        Self(value, .microvolts)
+    }
+
+    public var microvolts: Double {
+        UnitType.convert(value, from: unit, to: .microvolts)
+    }
+
+}
+
+public struct ElectricResistance: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .ohms }
+}
+extension ElectricResistance {
+    public static var ohms: Self {
+        Self(symbol: "Ω", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var megaohms: Self {
+        Self(symbol: "MΩ", converter: UnitConverterLinear(coefficient: 1000000.0))
+    }
+    public static var kiloohms: Self {
+        Self(symbol: "kΩ", converter: UnitConverterLinear(coefficient: 1000.0))
+    }
+    public static var milliohms: Self {
+        Self(symbol: "mΩ", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+    public static var microohms: Self {
+        Self(symbol: "µΩ", converter: UnitConverterLinear(coefficient: 0.000001))
+    }
+}
+extension Measurement where UnitType == ElectricResistance {
+    public var ohms: Double {
+    value(in: .ohms)
+}
+    public static func ohms(_ value: Double) -> Self {
+        Self(value, .ohms)
+    }
+
+    public static func megaohms(_ value: Double) -> Self {
+        Self(value, .megaohms)
+    }
+
+    public var megaohms: Double {
+        UnitType.convert(value, from: unit, to: .megaohms)
+    }
+
+    public static func kiloohms(_ value: Double) -> Self {
+        Self(value, .kiloohms)
+    }
+
+    public var kiloohms: Double {
+        UnitType.convert(value, from: unit, to: .kiloohms)
+    }
+
+    public static func milliohms(_ value: Double) -> Self {
+        Self(value, .milliohms)
+    }
+
+    public var milliohms: Double {
+        UnitType.convert(value, from: unit, to: .milliohms)
+    }
+
+    public static func microohms(_ value: Double) -> Self {
+        Self(value, .microohms)
+    }
+
+    public var microohms: Double {
+        UnitType.convert(value, from: unit, to: .microohms)
+    }
+
+}
+
+public struct ConcentrationOfMass: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .gramsPerLiter }
+}
+extension ConcentrationOfMass {
+    public static var gramsPerLiter: Self {
+        Self(symbol: "g/L", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var milligramsPerDeciliter: Self {
+        Self(symbol: "mg/dL", converter: UnitConverterLinear(coefficient: 0.01))
+    }
+    
+    public static func millimolesPerLiter(gramsPerMole: Double) -> Self {
+        Self(symbol: "mmol/L", converter: UnitConverterLinear(coefficient: 18 * gramsPerMole))
+    }
+}
+extension Measurement where UnitType == ConcentrationOfMass {
+    public var gramsPerLiter: Double {
+    value(in: .gramsPerLiter)
+}
+    public static func gramsPerLiter(_ value: Double) -> Self {
+        Self(value, .gramsPerLiter)
+    }
+
+    public static func milligramsPerDeciliter(_ value: Double) -> Self {
+        Self(value, .milligramsPerDeciliter)
+    }
+
+    public var milligramsPerDeciliter: Double {
+        UnitType.convert(value, from: unit, to: .milligramsPerDeciliter)
+    }
+
+    public static func millimolesPerLiter(_ value: Double, gramsPerMole: Double) -> Self {
+        Self(value, .millimolesPerLiter(gramsPerMole: gramsPerMole))
+    }
+    
+    public func millimolesPerLiter(gramsPerMole: Double) -> Double {
+        self.value(in: .millimolesPerLiter(gramsPerMole: gramsPerMole))
+    }
+}
+
+public struct Dispersion: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .partsPerMillion }
+}
+extension Dispersion {
+    public static var partsPerMillion: Self {
+        Self(symbol: "ppm", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var partsPerBillion: Self {
+        Self(symbol: "ppb", converter: UnitConverterLinear(coefficient: 0.001))
+    }
+}
+extension Measurement where UnitType == Dispersion {
+    public var partsPerMillion: Double {
+    value(in: .partsPerMillion)
+}
+    public static func partsPerMillion(_ value: Double) -> Self {
+        Self(value, .partsPerMillion)
+    }
+
+    public static func partsPerBillion(_ value: Double) -> Self {
+        Self(value, .partsPerBillion)
+    }
+
+    public var partsPerBillion: Double {
+        UnitType.convert(value, from: unit, to: .partsPerBillion)
+    }
+
+}
+
+public struct FuelEfficiency: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterReciprocal
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: Converter
+    public let symbol: String
+    
+    public static var litersPer100Kilometers: Self {
+        Self(symbol: "L/100km", converter: Converter(reciprocal: 0))
+    }
+    
+    public static var milesPerGallon: Self {
+        Self(symbol: "mpg", converter: Converter(reciprocal: 235.215000))
+    }
+    
+    public static var milesPerImperialGallon: Self {
+        Self(symbol: "mpg", converter: Converter(reciprocal: 282.481000))
+    }
+    
+    public static var base: Self { .litersPer100Kilometers }
+}
+extension Measurement where UnitType == FuelEfficiency {
+    public var litersPer100Kilometers: Double {
+    value(in: .litersPer100Kilometers)
+}
+    public static func litersPer100Kilometers(_ value: Double) -> Self {
+        Self(value, .litersPer100Kilometers)
+    }
+
+    public static func milesPerGallon(_ value: Double) -> Self {
+        Self(value, .milesPerGallon)
+    }
+
+    public var milesPerGallon: Double {
+        UnitType.convert(value, from: unit, to: .milesPerGallon)
+    }
+
+    public static func milesPerImperialGallon(_ value: Double) -> Self {
+        Self(value, .milesPerImperialGallon)
+    }
+
+    public var milesPerImperialGallon: Double {
+        UnitType.convert(value, from: unit, to: .milesPerImperialGallon)
+    }
+
+}
+
+public struct InformationStorage: Dimension, Hashable, Codable {
+    public typealias Converter = UnitConverterLinear
+    public init(symbol: String, converter: Converter) {
+        self.symbol = symbol
+        self.converter = converter
+    }
+
+
+    public var converter: UnitConverterLinear
+    public let symbol: String
+    public static var base: Self { .bits }
+}
+extension InformationStorage {
+    public static var bits: Self {
+        Self(symbol: "bits", converter: UnitConverterLinear(coefficient: 1))
+    }
+
+    public static var nibbles: Self {
+        Self(symbol: "nibbles", converter: UnitConverterLinear(coefficient: 4))
+    }
+    public static var bytes: Self {
+        Self(symbol: "B", converter: UnitConverterLinear(coefficient: 8))
+    }
+    public static var kilobits: Self {
+        Self(symbol: "Kb", converter: UnitConverterLinear(coefficient: 1000))
+    }
+    public static var kibibits: Self {
+        Self(symbol: "Kib", converter: UnitConverterLinear(coefficient: 1024))
+    }
+    public static var megabits: Self {
+        Self(symbol: "Mb", converter: UnitConverterLinear(coefficient: 1000e2))
+    }
+    public static var mebibits: Self {
+        Self(symbol: "Mib", converter: UnitConverterLinear(coefficient: 1024e2))
+    }
+    public static var gigabits: Self {
+        Self(symbol: "Gb", converter: UnitConverterLinear(coefficient: 1000e3))
+    }
+    public static var gibibits: Self {
+        Self(symbol: "Gib", converter: UnitConverterLinear(coefficient: 1024e3))
+    }
+    public static var terabits: Self {
+        Self(symbol: "Tb", converter: UnitConverterLinear(coefficient: 1000e4))
+    }
+    public static var tebibits: Self {
+        Self(symbol: "Tib", converter: UnitConverterLinear(coefficient: 1024e4))
+    }
+    public static var petabits: Self {
+        Self(symbol: "Pb", converter: UnitConverterLinear(coefficient: 1000e5))
+    }
+    public static var pebibits: Self {
+        Self(symbol: "Pib", converter: UnitConverterLinear(coefficient: 1024e5))
+    }
+    public static var exabits: Self {
+        Self(symbol: "Eb", converter: UnitConverterLinear(coefficient: 1000e6))
+    }
+    public static var exbibits: Self {
+        Self(symbol: "Eib", converter: UnitConverterLinear(coefficient: 1024e6))
+    }
+    public static var zettabits: Self {
+        Self(symbol: "Zb", converter: UnitConverterLinear(coefficient: 1000e7))
+    }
+    public static var zebibits: Self {
+        Self(symbol: "Zib", converter: UnitConverterLinear(coefficient: 1024e7))
+    }
+    public static var yottabits: Self {
+        Self(symbol: "Yb", converter: UnitConverterLinear(coefficient: 1000e8))
+    }
+    public static var yobibits: Self {
+        Self(symbol: "Yib", converter: UnitConverterLinear(coefficient: 1024e8))
+    }
+    public static var kilobytes: Self {
+        Self(symbol: "KB", converter: UnitConverterLinear(coefficient: 1000))
+    }
+    public static var kibibytes: Self {
+        Self(symbol: "KiB", converter: UnitConverterLinear(coefficient: 1024))
+    }
+    public static var megabytes: Self {
+        Self(symbol: "MB", converter: UnitConverterLinear(coefficient: 1000e2))
+    }
+    public static var mebibytes: Self {
+        Self(symbol: "MiB", converter: UnitConverterLinear(coefficient: 1024e2))
+    }
+    public static var gigabytes: Self {
+        Self(symbol: "GB", converter: UnitConverterLinear(coefficient: 1000e3))
+    }
+    public static var gibibytes: Self {
+        Self(symbol: "GiB", converter: UnitConverterLinear(coefficient: 1024e3))
+    }
+    public static var terabytes: Self {
+        Self(symbol: "TB", converter: UnitConverterLinear(coefficient: 1000e4))
+    }
+    public static var tebibytes: Self {
+        Self(symbol: "TiB", converter: UnitConverterLinear(coefficient: 1024e4))
+    }
+    public static var petabytes: Self {
+        Self(symbol: "PB", converter: UnitConverterLinear(coefficient: 1000e5))
+    }
+    public static var pebibytes: Self {
+        Self(symbol: "PiB", converter: UnitConverterLinear(coefficient: 1024e5))
+    }
+    public static var exabytes: Self {
+        Self(symbol: "EB", converter: UnitConverterLinear(coefficient: 1000e6))
+    }
+    public static var exbibytes: Self {
+        Self(symbol: "EiB", converter: UnitConverterLinear(coefficient: 1024e6))
+    }
+    public static var zettabytes: Self {
+        Self(symbol: "ZB", converter: UnitConverterLinear(coefficient: 1000e7))
+    }
+    public static var zebibytes: Self {
+        Self(symbol: "ZiB", converter: UnitConverterLinear(coefficient: 1024e7))
+    }
+    public static var yottabytes: Self {
+        Self(symbol: "YB", converter: UnitConverterLinear(coefficient: 1000e8))
+    }
+    public static var yobibytes: Self {
+        Self(symbol: "YiB", converter: UnitConverterLinear(coefficient: 1024e8))
+    }
+}
+
+extension Measurement where UnitType == InformationStorage {
+    public var bits: Double {
+    value(in: .bits)
+}
+    public static func bits(_ value: Double) -> Self {
+        Self(value, .bits)
+    }
+
+    public static func nibbles(_ value: Double) -> Self {
+        Self(value, .nibbles)
+    }
+
+    public var nibbles: Double {
+        UnitType.convert(value, from: unit, to: .nibbles)
+    }
+
+    public static func bytes(_ value: Double) -> Self {
+        Self(value, .bytes)
+    }
+
+    public var bytes: Double {
+        UnitType.convert(value, from: unit, to: .bytes)
+    }
+
+    public static func kilobits(_ value: Double) -> Self {
+        Self(value, .kilobits)
+    }
+
+    public var kilobits: Double {
+        UnitType.convert(value, from: unit, to: .kilobits)
+    }
+
+    public static func kibibits(_ value: Double) -> Self {
+        Self(value, .kibibits)
+    }
+
+    public var kibibits: Double {
+        UnitType.convert(value, from: unit, to: .kibibits)
+    }
+
+    public static func megabits(_ value: Double) -> Self {
+        Self(value, .megabits)
+    }
+
+    public var megabits: Double {
+        UnitType.convert(value, from: unit, to: .megabits)
+    }
+
+    public static func mebibits(_ value: Double) -> Self {
+        Self(value, .mebibits)
+    }
+
+    public var mebibits: Double {
+        UnitType.convert(value, from: unit, to: .mebibits)
+    }
+
+    public static func gigabits(_ value: Double) -> Self {
+        Self(value, .gigabits)
+    }
+
+    public var gigabits: Double {
+        UnitType.convert(value, from: unit, to: .gigabits)
+    }
+
+    public static func gibibits(_ value: Double) -> Self {
+        Self(value, .gibibits)
+    }
+
+    public var gibibits: Double {
+        UnitType.convert(value, from: unit, to: .gibibits)
+    }
+
+    public static func terabits(_ value: Double) -> Self {
+        Self(value, .terabits)
+    }
+
+    public var terabits: Double {
+        UnitType.convert(value, from: unit, to: .terabits)
+    }
+
+    public static func tebibits(_ value: Double) -> Self {
+        Self(value, .tebibits)
+    }
+
+    public var tebibits: Double {
+        UnitType.convert(value, from: unit, to: .tebibits)
+    }
+
+    public static func petabits(_ value: Double) -> Self {
+        Self(value, .petabits)
+    }
+
+    public var petabits: Double {
+        UnitType.convert(value, from: unit, to: .petabits)
+    }
+
+    public static func pebibits(_ value: Double) -> Self {
+        Self(value, .pebibits)
+    }
+
+    public var pebibits: Double {
+        UnitType.convert(value, from: unit, to: .pebibits)
+    }
+
+    public static func exabits(_ value: Double) -> Self {
+        Self(value, .exabits)
+    }
+
+    public var exabits: Double {
+        UnitType.convert(value, from: unit, to: .exabits)
+    }
+
+    public static func exbibits(_ value: Double) -> Self {
+        Self(value, .exbibits)
+    }
+
+    public var exbibits: Double {
+        UnitType.convert(value, from: unit, to: .exbibits)
+    }
+
+    public static func zettabits(_ value: Double) -> Self {
+        Self(value, .zettabits)
+    }
+
+    public var zettabits: Double {
+        UnitType.convert(value, from: unit, to: .zettabits)
+    }
+
+    public static func zebibits(_ value: Double) -> Self {
+        Self(value, .zebibits)
+    }
+
+    public var zebibits: Double {
+        UnitType.convert(value, from: unit, to: .zebibits)
+    }
+
+    public static func yottabits(_ value: Double) -> Self {
+        Self(value, .yottabits)
+    }
+
+    public var yottabits: Double {
+        UnitType.convert(value, from: unit, to: .yottabits)
+    }
+
+    public static func yobibits(_ value: Double) -> Self {
+        Self(value, .yobibits)
+    }
+
+    public var yobibits: Double {
+        UnitType.convert(value, from: unit, to: .yobibits)
+    }
+
+    public static func kilobytes(_ value: Double) -> Self {
+        Self(value, .kilobytes)
+    }
+
+    public var kilobytes: Double {
+        UnitType.convert(value, from: unit, to: .kilobytes)
+    }
+
+    public static func kibibytes(_ value: Double) -> Self {
+        Self(value, .kibibytes)
+    }
+
+    public var kibibytes: Double {
+        UnitType.convert(value, from: unit, to: .kibibytes)
+    }
+
+    public static func megabytes(_ value: Double) -> Self {
+        Self(value, .megabytes)
+    }
+
+    public var megabytes: Double {
+        UnitType.convert(value, from: unit, to: .megabytes)
+    }
+
+    public static func mebibytes(_ value: Double) -> Self {
+        Self(value, .mebibytes)
+    }
+
+    public var mebibytes: Double {
+        UnitType.convert(value, from: unit, to: .mebibytes)
+    }
+
+    public static func gigabytes(_ value: Double) -> Self {
+        Self(value, .gigabytes)
+    }
+
+    public var gigabytes: Double {
+        UnitType.convert(value, from: unit, to: .gigabytes)
+    }
+
+    public static func gibibytes(_ value: Double) -> Self {
+        Self(value, .gibibytes)
+    }
+
+    public var gibibytes: Double {
+        UnitType.convert(value, from: unit, to: .gibibytes)
+    }
+
+    public static func terabytes(_ value: Double) -> Self {
+        Self(value, .terabytes)
+    }
+
+    public var terabytes: Double {
+        UnitType.convert(value, from: unit, to: .terabytes)
+    }
+
+    public static func tebibytes(_ value: Double) -> Self {
+        Self(value, .tebibytes)
+    }
+
+    public var tebibytes: Double {
+        UnitType.convert(value, from: unit, to: .tebibytes)
+    }
+
+    public static func petabytes(_ value: Double) -> Self {
+        Self(value, .petabytes)
+    }
+
+    public var petabytes: Double {
+        UnitType.convert(value, from: unit, to: .petabytes)
+    }
+
+    public static func pebibytes(_ value: Double) -> Self {
+        Self(value, .pebibytes)
+    }
+
+    public var pebibytes: Double {
+        UnitType.convert(value, from: unit, to: .pebibytes)
+    }
+
+    public static func exabytes(_ value: Double) -> Self {
+        Self(value, .exabytes)
+    }
+
+    public var exabytes: Double {
+        UnitType.convert(value, from: unit, to: .exabytes)
+    }
+
+    public static func exbibytes(_ value: Double) -> Self {
+        Self(value, .exbibytes)
+    }
+
+    public var exbibytes: Double {
+        UnitType.convert(value, from: unit, to: .exbibytes)
+    }
+
+    public static func zettabytes(_ value: Double) -> Self {
+        Self(value, .zettabytes)
+    }
+
+    public var zettabytes: Double {
+        UnitType.convert(value, from: unit, to: .zettabytes)
+    }
+
+    public static func zebibytes(_ value: Double) -> Self {
+        Self(value, .zebibytes)
+    }
+
+    public var zebibytes: Double {
+        UnitType.convert(value, from: unit, to: .zebibytes)
+    }
+
+    public static func yottabytes(_ value: Double) -> Self {
+        Self(value, .yottabytes)
+    }
+
+    public var yottabytes: Double {
+        UnitType.convert(value, from: unit, to: .yottabytes)
+    }
+
+    public static func yobibytes(_ value: Double) -> Self {
+        Self(value, .yobibytes)
+    }
+
+    public var yobibytes: Double {
+        UnitType.convert(value, from: unit, to: .yobibytes)
+    }
+
+}

@@ -530,7 +530,7 @@ public struct DataDetector: RawRepresentable {
         
         public var dateInfo: DateInfo? {
             if rawValue.date != nil || rawValue.timeZone != nil {
-                return DateInfo(date: rawValue.date, duration: Duration(seconds: rawValue.duration), timeZone: rawValue.timeZone)
+                return DateInfo(date: rawValue.date, duration: TimeInterval.seconds(rawValue.duration), timeZone: rawValue.timeZone)
             } else {
                 return nil
             }
@@ -557,7 +557,7 @@ public struct DataDetector: RawRepresentable {
         
         public struct DateInfo {
             public var date: Date?
-            public var duration: Duration?
+            public var duration: Measurement<Duration>?
             public var timeZone: TimeZone?
         }
         
@@ -669,6 +669,11 @@ extension Orthography {
         Orthography.defaultOrthography(forLanguage: language)
     }
     
+    @available(macOS 13.0, *)
+    public static func `default`(for locale: Locale) -> Orthography {
+        .default(for: locale.language.minimalIdentifier)
+    }
+    
     /// The default orthography for your language.
     @available(macOS 13.0, *)
     public static var `default`: Orthography {
@@ -676,5 +681,50 @@ extension Orthography {
     }
 }
 
+/// Uppercases any string stored inside.
+@propertyWrapper public struct Uppercased {
+    var _wrappedValue: String
+    
+    public var wrappedValue: String {
+        get {
+            _wrappedValue
+        } set {
+            _wrappedValue = newValue.uppercased()
+        }
+    }
+    
+    public init(wrappedValue: String) {
+        self._wrappedValue = wrappedValue.uppercased()
+    }
+}
 
+/// Lowercases any string stored inside.
+@propertyWrapper public struct Lowercased {
+    var _wrappedValue: String
+    
+    public var wrappedValue: String {
+        get {
+            _wrappedValue
+        } set {
+            _wrappedValue = newValue.lowercased()
+        }
+    }
+    
+    public init(wrappedValue: String) {
+        self._wrappedValue = wrappedValue.lowercased()
+    }
+}
 
+/// Normalizes any string stored inside.
+@propertyWrapper public struct Capitalized {
+    var _wrappedValue: String
+    
+    public var wrappedValue: String {
+        get { _wrappedValue }
+        set { _wrappedValue = newValue.capitalized }
+    }
+    
+    public init(wrappedValue: String) {
+        self._wrappedValue = wrappedValue.capitalized
+    }
+}

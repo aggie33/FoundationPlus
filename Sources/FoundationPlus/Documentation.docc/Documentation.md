@@ -19,6 +19,8 @@ Foundation is a great framework, but can feel burdened by the legacy of Objectiv
 
 - ``ContiguousBytes``
 - ``URL``
+- ``URLComponents``
+- ``URLQueryItem``
 
 - ``UUID``
 
@@ -28,6 +30,9 @@ Foundation is a great framework, but can feel burdened by the legacy of Objectiv
 - ``Scale``
 - ``Vector``
 - ``AffineTransform``
+- ``Positive``
+- ``Rounded``
+- ``Transformed``
 
 ### Mathematical Functions
 - ``sin(_:)``
@@ -46,29 +51,55 @@ Foundation is a great framework, but can feel burdened by the legacy of Objectiv
 - ``DataDetector``
 - ``SpellServer``
 - ``Orthography``
+- ``Uppercased``
+- ``Lowercased``
+- ``Capitalized``
 
 ### Collections
 - ``CountedSet``
 - ``OrderedSet``
 - ``Cache``
 - ``PurgeableData``
+- ``DiscardableContent``
 
 ### Dates and Times
 - ``TimeInterval``
 - ``Date``
+- ``DateComponents``
 - ``DateInterval``
 - ``Calendar``
 - ``TimeZone``
 
 ### Units and Measurement
-- ``UnitProtocol``
-- ``DimensionProtocol``
 - ``Measurement``
-- ``Length``
+- ``Unit``
+- ``Dimension``
+- ``UnitConverter``
+- ``UnitConverterLinear``
+- ``UnitConverterReciprocal``
 - ``Area``
+- ``Length``
+- ``Volume``
 - ``Angle``
+- ``Mass``
+- ``Pressure``
+- ``Acceleration``
 - ``Duration``
+- ``Frequency``
+- ``Speed``
+- ``Energy``
+- ``Power``
+- ``Temperature``
+- ``Illuminance``
+- ``ElectricCharge``
+- ``ElectricCurrent``
 - ``ElectricPotentialDifference``
+- ``ElectricResistance``
+- ``ConcentrationOfMass``
+- ``Dispersion``
+- ``FuelEfficiency``
+- ``InformationStorage``
+- ``
 
 ### Errors and Exceptions
 - ``Exception``

@@ -268,7 +268,7 @@ extension AffineTransform {
 }
 
 extension AffineTransform {
-    public static func rotation(by angle: Angle) -> Self {
+    public static func rotation(by angle: Measurement<Angle>) -> Self {
         Self(rotationByDegrees: angle.degrees)
     }
     
@@ -280,7 +280,7 @@ extension AffineTransform {
         Self(translationByX: vector.dx, byY: vector.dy)
     }
     
-    public mutating func rotate(by angle: Angle) {
+    public mutating func rotate(by angle: Measurement<Angle>) {
         self.rotate(byDegrees: angle.degrees)
     }
     
@@ -348,6 +348,10 @@ extension Point {
     public static func -= (lhs: inout Point, rhs: Vector) {
         lhs = lhs - rhs
     }
+    
+    public func applying(_ transform: AffineTransform) -> Point {
+        transform.transform(self)
+    }
 }
 
 extension Vector {
@@ -363,25 +367,75 @@ extension Vector {
         sqrt(dx * dx + dy * dy)
     }
     
-    public var angle: Angle {
+    public var angle: Measurement<Angle> {
         .radians(acos(dx / magnitude))
     }
 }
 
 /// Measures the y of the point of an angle on a unit circle.
-public func sin(_ angle: Angle) -> Double {
+public func sin(_ angle: Measurement<Angle>) -> Double {
     Darwin.sin(angle.radians)
 }
 
 /// Measures the x the point of an angle on a unit circle.
-public func cos(_ angle: Angle) -> Double {
+public func cos(_ angle: Measurement<Angle>) -> Double {
     Darwin.cos(angle.radians)
 }
 
 /// Measures the slope of the tangent line of the point of an angle on a unit circle.
-public func tan(_ angle: Angle) -> Double {
+public func tan(_ angle: Measurement<Angle>) -> Double {
     Darwin.tan(angle.radians)
 }
 
+/// Makes a signed value positive.
+@propertyWrapper public struct Positive<T: SignedInteger> {
+    var _wrappedValue: T
+    var mode: Mode
+    
+    public enum Mode {
+        case clamping
+        case absoluteValue
+    }
+    
+    public init(wrappedValue: T, mode: Mode = .clamping) {
+        self._wrappedValue = mode == .clamping ? max(0, wrappedValue) : abs(wrappedValue)
+        self.mode = mode
+    }
+    
+    public var wrappedValue: T {
+        get { _wrappedValue }
+        set { _wrappedValue = mode == .clamping ? max(0, newValue) : abs(newValue) }
+    }
+}
 
+/// Rounds a floating-point value.
+@propertyWrapper public struct Rounded<T: BinaryFloatingPoint> {
+    var _wrappedValue: T
+    var mode: FloatingPointRoundingRule
+    
+    public init(wrappedValue: T, mode: FloatingPointRoundingRule) {
+        self._wrappedValue = wrappedValue.rounded(mode)
+        self.mode = mode
+    }
+    
+    public var wrappedValue: T {
+        get { _wrappedValue }
+        set { _wrappedValue = newValue.rounded(mode) }
+    }
+}
 
+/// Transforms a point by an affine transform.
+@propertyWrapper public struct Transformed {
+    var _wrappedValue: Point
+    var transform: AffineTransform
+    
+    public var wrappedValue: Point {
+        get { _wrappedValue }
+        set { _wrappedValue = transform.transform(newValue) }
+    }
+    
+    public init(wrappedValue: Point, _ transform: AffineTransform) {
+        self._wrappedValue = transform.transform(wrappedValue)
+        self.transform = transform
+    }
+}

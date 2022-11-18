@@ -1,24 +1,24 @@
 import Foundation
 
-public typealias TimeInterval = Duration
+public typealias TimeInterval = Measurement<Duration>
 
 public typealias Date = Foundation.Date
 
 public extension Date {
-    init(_ duration: Duration, since date: Date) {
-        self.init(timeInterval: duration.seconds, since: date)
+    init(_ duration: TimeInterval, since date: Date) {
+        self.init(timeInterval: duration.value(in: .seconds), since: date)
     }
     
-    static func + (lhs: Date, rhs: Duration) -> Self {
-        lhs + rhs.seconds
+    static func + (lhs: Date, rhs: TimeInterval) -> Self {
+        lhs + rhs.value(in: .seconds)
     }
     
-    static func - (lhs: Date, rhs: Duration) -> Self {
-        lhs - rhs.seconds
+    static func - (lhs: Date, rhs: TimeInterval) -> Self {
+        lhs - rhs.value(in: .seconds)
     }
     
-    func duration(since date: Date) -> Duration {
-        .seconds(timeIntervalSince(date))
+    func duration(since date: Date) -> TimeInterval {
+        TimeInterval(timeIntervalSince(date), .seconds)
     }
     
     typealias Components = Foundation.DateComponents
@@ -71,7 +71,7 @@ public typealias DateComponents = Date.Components
 public struct DateInterval: Equatable {
     public var rawValue: Foundation.DateInterval
     
-    public init(from start: Date, for duration: Duration) {
+    public init(from start: Date, for duration: TimeInterval) {
         self.rawValue = .init(start: start, duration: duration.seconds)
     }
     
@@ -79,7 +79,7 @@ public struct DateInterval: Equatable {
         self.rawValue = .init(start: start, end: end)
     }
     
-    public var duration: Duration {
+    public var duration: TimeInterval {
         .seconds(rawValue.duration)
     }
     
@@ -225,3 +225,5 @@ extension Calendar {
 }
 
 public typealias TimeZone = Foundation.TimeZone
+
+

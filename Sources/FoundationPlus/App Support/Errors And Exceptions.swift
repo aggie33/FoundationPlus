@@ -23,7 +23,7 @@ public struct Exception: RawRepresentable {
     
     public static func raise(_ name: Name, reason: String) {
         withVaList([]) {
-            NSException.raise(name, format: "reason", arguments: $0)
+            NSException.raise(name, format: reason, arguments: $0)
         }
     }
     
@@ -57,3 +57,5 @@ public protocol LocalizedError: Error, CustomStringConvertible {
 
 /// An error that's localized and may be recoverable.
 public typealias LocalizedRecoverableError = LocalizedError & RecoverableError
+
+
