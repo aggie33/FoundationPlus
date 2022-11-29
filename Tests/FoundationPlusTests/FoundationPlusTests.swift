@@ -4,7 +4,10 @@ import XCTest
 final class FoundationPlusTests: XCTestCase {
     @available(macOS 13.0, *)
     func testExample() async throws {
+
+        let x = 5
         
+        // How to ship an integer into class space.
         let speed = Measurement.miles(5) / .hours(3)
         print(speed)
         
@@ -17,5 +20,9 @@ final class FoundationPlusTests: XCTestCase {
         /* Nov 8 */ XCTAssertEqual(([1: "Hello", 2: "Goodbye"] as Cache)[1], "Hello")
         /* Nov 18 */ XCTAssertEqual(Measurement.meters(3) / .seconds(5), .metersPerSecond(3 / 5))
         /* Nov 18 */ XCTAssertEqual(Measurement.bytes(1).bits, 8.0)
+        /* Nov 18 */ // XCTAssertEqual(5.formatted(.spellOut), "five")
     }
 }
+
+
+

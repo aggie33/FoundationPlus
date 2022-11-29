@@ -349,16 +349,13 @@ extension Reference: Hashable where Referenced: Hashable {
     }
     
     @objc override var hash: Int {
-        print("Hash value of \(self) is \(wrappedValue.hashValue)")
         return wrappedValue.hashValue
     }
     
     @objc override func isEqual(_ object: Any?) -> Bool {
         if (object as? HashableReference<Referenced>).map({ $0.wrappedValue == self.wrappedValue }) ?? false {
-            print("\(self) == \(object ?? "")")
             return true
         } else {
-            print("\(self) != \(object ?? "")")
             return false
         }
     }

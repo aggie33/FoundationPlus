@@ -99,7 +99,12 @@ Foundation is a great framework, but can feel burdened by the legacy of Objectiv
 - ``Dispersion``
 - ``FuelEfficiency``
 - ``InformationStorage``
-- ``
+
+### Formatting and Localization
+- ``Formatter``
+- ``Formattable``
+- ``ReverseFormattable``
+- ``FormatStyleProtocol``
 
 ### Errors and Exceptions
 - ``Exception``
@@ -108,5 +113,6 @@ Foundation is a great framework, but can feel burdened by the legacy of Objectiv
 - ``LocalizedError``
 - ``LocalizedRecoverableError``
 
-### Object Runtime
+### Useful Generic Types
 - ``Reference``
+- ``?=(lhs:rhs:)``

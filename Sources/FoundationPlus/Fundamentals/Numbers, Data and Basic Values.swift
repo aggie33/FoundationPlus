@@ -397,7 +397,7 @@ public func tan(_ angle: Measurement<Angle>) -> Double {
         case absoluteValue
     }
     
-    public init(wrappedValue: T, mode: Mode = .clamping) {
+    public init(wrappedValue: T, _ mode: Mode = .clamping) {
         self._wrappedValue = mode == .clamping ? max(0, wrappedValue) : abs(wrappedValue)
         self.mode = mode
     }
@@ -413,7 +413,7 @@ public func tan(_ angle: Measurement<Angle>) -> Double {
     var _wrappedValue: T
     var mode: FloatingPointRoundingRule
     
-    public init(wrappedValue: T, mode: FloatingPointRoundingRule) {
+    public init(wrappedValue: T, _ mode: FloatingPointRoundingRule) {
         self._wrappedValue = wrappedValue.rounded(mode)
         self.mode = mode
     }
@@ -422,6 +422,8 @@ public func tan(_ angle: Measurement<Angle>) -> Double {
         get { _wrappedValue }
         set { _wrappedValue = newValue.rounded(mode) }
     }
+    
+    @Transformed(.identity) var x = Point(x: 0, y: 0)
 }
 
 /// Transforms a point by an affine transform.
@@ -439,3 +441,4 @@ public func tan(_ angle: Measurement<Angle>) -> Double {
         self.transform = transform
     }
 }
+
